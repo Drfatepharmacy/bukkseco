@@ -82,23 +82,17 @@ const SignupPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, navigate to dashboard
     toast.success(`Welcome to BUKKS as a ${config.label}!`);
     navigate(`/dashboard/${role}`);
   };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      {/* Background glow */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
-      </div>
-
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, type: "spring" }}
-        className="relative z-10 w-full max-w-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-lg"
       >
         <div className="glass-card p-8">
           <button
@@ -126,7 +120,7 @@ const SignupPage = () => {
                   placeholder={field.placeholder}
                   value={formData[field.name] || ""}
                   onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                  className="bg-muted/50 border-border/50 font-body text-foreground placeholder:text-muted-foreground/50 focus:ring-primary/30"
+                  className="bg-muted/50 border-border font-body text-foreground placeholder:text-muted-foreground/50 focus:ring-primary/30"
                   required
                 />
               </div>
@@ -137,14 +131,14 @@ const SignupPage = () => {
                 <Label className="text-sm font-body text-muted-foreground">
                   {role === "vendor" ? "Kitchen Photos" : "Farm Images"}
                 </Label>
-                <div className="glass-card p-6 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors">
+                <div className="glass-card p-6 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
                   <Upload className="w-6 h-6 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground font-body">Click to upload images</span>
                 </div>
               </div>
             )}
 
-            <Button type="submit" className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground font-body">
+            <Button type="submit" className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground font-body font-semibold">
               Create Account
             </Button>
           </form>

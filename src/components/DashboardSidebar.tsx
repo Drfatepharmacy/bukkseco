@@ -29,7 +29,9 @@ const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebar
       }`}
     >
       <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
-        {!collapsed && <LogoPlaceholder size="sm" />}
+        {!collapsed && (
+          <span className="font-display font-bold text-xl text-primary">bukks</span>
+        )}
         <button onClick={onToggle} className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors text-sidebar-foreground">
           <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? "rotate-180" : ""}`} />
         </button>
@@ -37,7 +39,7 @@ const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebar
 
       {!collapsed && (
         <div className="px-4 py-3">
-          <span className="text-xs uppercase tracking-wider text-muted-foreground font-body">{role}</span>
+          <span className="text-xs uppercase tracking-wider text-sidebar-foreground/60 font-body">{role}</span>
         </div>
       )}
 
@@ -48,8 +50,8 @@ const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebar
             onClick={item.onClick}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
               item.active
-                ? "bg-sidebar-accent text-sidebar-primary-foreground"
-                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             }`}
           >
             <item.icon className="w-5 h-5 shrink-0" />
@@ -61,7 +63,7 @@ const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebar
       <div className="p-3 border-t border-sidebar-border">
         <button
           onClick={() => navigate("/")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
         >
           <LogOut className="w-5 h-5 shrink-0" />
           {!collapsed && <span className="font-body">Back to Home</span>}

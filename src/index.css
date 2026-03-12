@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 240 14% 2%;
-    --foreground: 0 0% 100%;
+    --background: 0 0% 100%;
+    --foreground: 220 30% 15%;
 
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
 
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
 
-    --primary: 239 84% 67%;
+    --primary: 24 95% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 187 92% 41%;
+    --secondary: 220 30% 15%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 10% 12%;
-    --muted-foreground: 215 25% 63%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 239 84% 67%;
+    --accent: 24 95% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -33,25 +33,23 @@
     --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
-    --border: 240 10% 14%;
-    --input: 240 10% 14%;
-    --ring: 239 84% 67%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 24 95% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 240 10% 4%;
-    --sidebar-foreground: 215 25% 63%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-background: 220 30% 15%;
+    --sidebar-foreground: 220 14% 75%;
+    --sidebar-primary: 24 95% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 10% 10%;
+    --sidebar-accent: 220 25% 22%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 10% 14%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-border: 220 20% 25%;
+    --sidebar-ring: 24 95% 50%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(239 84% 67%), hsl(187 92% 41%));
-    --gradient-glow: radial-gradient(ellipse at center, hsl(239 84% 67% / 0.15), transparent 70%);
-    --shadow-glow: 0 0 40px -10px hsl(239 84% 67% / 0.3);
-    --shadow-card: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 4px 24px -4px hsl(220 30% 15% / 0.08);
+    --shadow-glow: 0 0 30px -8px hsl(24 95% 50% / 0.2);
 
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
@@ -73,25 +71,20 @@
 
 @layer components {
   .glass-card {
-    @apply relative rounded-xl border border-border/50 backdrop-blur-xl;
-    background: rgba(255, 255, 255, 0.03);
+    @apply relative rounded-xl border border-border bg-card;
     box-shadow: var(--shadow-card);
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-500 ease-out;
+    @apply glass-card transition-all duration-300 ease-out;
   }
   .glass-card-hover:hover {
-    background: rgba(255, 255, 255, 0.06);
     box-shadow: var(--shadow-glow), var(--shadow-card);
-    transform: translateY(-4px) scale(1.01);
+    transform: translateY(-2px);
   }
 
   .gradient-text {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: hsl(24 95% 50%);
   }
 
   .gradient-border {
@@ -103,46 +96,12 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, hsl(24 95% 50%), hsl(24 80% 60%));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
   }
-
-  .neural-glow {
-    position: relative;
-  }
-  .neural-glow::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: var(--gradient-primary);
-    opacity: 0;
-    filter: blur(20px);
-    transition: opacity 0.5s ease;
-    z-index: -1;
-  }
-  .neural-glow:hover::after {
-    opacity: 0.3;
-  }
-
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 3s infinite;
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 }
 
 @keyframes float {
