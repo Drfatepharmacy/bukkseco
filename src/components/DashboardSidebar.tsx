@@ -1,0 +1,74 @@
+import { motion } from "framer-motion";
+import { LucideIcon, ChevronLeft, LogOut } from "lucide-react";
+import LogoPlaceholder from "./LogoPlaceholder";
+import { useNavigate } from "react-router-dom";
+
+interface NavItem {
+  label: string;
+  icon: LucideIcon;
+  active?: boolean;
+  onClick?: () => void;
+}
+
+interface DashboardSidebarProps {
+  items: NavItem[];
+  role: string;
+  collapsed?: boolean;
+  onToggle?: () => void;
+}
+
+const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebarProps) => {
+  const navigate = useNavigate();
+
+  return (
+    <motion.aside
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      className={`fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col z-30 transition-all duration-300 ${
+        collapsed ? "w-20" : "w-64"
+      }`}
+    >
+      <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
+        {!collapsed && <LogoPlaceholder size="sm" />}
+        <button onClick={onToggle} className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors text-sidebar-foreground">
+          <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+
+      {!collapsed && (
+        <div className="px-4 py-3">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground font-body">{role}</span>
+        </div>
+      )}
+
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+        {items.map((item) => (
+          <button
+            key={item.label}
+            onClick={item.onClick}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+              item.active
+                ? "bg-sidebar-accent text-sidebar-primary-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+            }`}
+          >
+            <item.icon className="w-5 h-5 shrink-0" />
+            {!collapsed && <span className="font-body">{item.label}</span>}
+          </button>
+        ))}
+      </nav>
+
+      <div className="p-3 border-t border-sidebar-border">
+        <button
+          onClick={() => navigate("/")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && <span className="font-body">Back to Home</span>}
+        </button>
+      </div>
+    </motion.aside>
+  );
+};
+
+export default DashboardSidebar;
