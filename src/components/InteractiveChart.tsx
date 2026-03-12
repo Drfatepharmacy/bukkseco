@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef, useState } from "react";
 
 interface DataPoint {
@@ -13,29 +13,21 @@ interface InteractiveChartProps {
 }
 
 const colorValues = {
-  primary: { fill: "hsl(239 84% 67%)", glow: "hsl(239 84% 67% / 0.3)" },
-  secondary: { fill: "hsl(187 92% 41%)", glow: "hsl(187 92% 41% / 0.3)" },
-  success: { fill: "hsl(160 84% 39%)", glow: "hsl(160 84% 39% / 0.3)" },
+  primary: { fill: "hsl(24 95% 50%)", glow: "hsl(24 95% 50% / 0.2)" },
+  secondary: { fill: "hsl(220 30% 15%)", glow: "hsl(220 30% 15% / 0.15)" },
+  success: { fill: "hsl(160 84% 39%)", glow: "hsl(160 84% 39% / 0.2)" },
 };
 
 const InteractiveChart = ({ data, title, color = "primary" }: InteractiveChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const mouseX = useMotionValue(0);
 
   const max = Math.max(...data.map((d) => d.value));
   const colors = colorValues[color];
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - rect.left) / rect.width);
-  };
-
   return (
     <motion.div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-5"
@@ -69,7 +61,7 @@ const InteractiveChart = ({ data, title, color = "primary" }: InteractiveChartPr
                 className="w-full rounded-t-md transition-all duration-200 relative"
                 style={{
                   background: isHovered ? colors.fill : `${colors.fill}80`,
-                  boxShadow: isHovered ? `0 0 20px ${colors.glow}` : "none",
+                  boxShadow: isHovered ? `0 0 16px ${colors.glow}` : "none",
                   minHeight: 4,
                 }}
               />
