@@ -11,6 +11,7 @@ import StatCard from "@/components/StatCard";
 import InteractiveChart from "@/components/InteractiveChart";
 import FoodHero from "@/components/FoodHero";
 import AdminApprovals from "@/components/AdminApprovals";
+import SupportButton from "@/components/SupportButton";
 import { dashboardConfigs } from "@/config/dashboardConfig";
 
 const DashboardPage = () => {
@@ -112,6 +113,7 @@ const DashboardPage = () => {
           </motion.div>
         </div>
       </main>
+      <SupportButton />
     </div>
   );
 };

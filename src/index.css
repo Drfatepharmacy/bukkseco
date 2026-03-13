@@ -7,24 +7,24 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 220 30% 15%;
+    --foreground: 240 10% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 30% 15%;
+    --card-foreground: 240 10% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 15%;
+    --popover-foreground: 240 10% 8%;
 
-    --primary: 24 95% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 96% 56%;
+    --primary-foreground: 240 10% 8%;
 
-    --secondary: 220 30% 15%;
+    --secondary: 270 50% 40%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 46%;
 
-    --accent: 24 95% 50%;
+    --accent: 270 50% 40%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -33,23 +33,30 @@
     --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 24 95% 50%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 43 96% 56%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 30% 15%;
-    --sidebar-foreground: 220 14% 75%;
-    --sidebar-primary: 24 95% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 22%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 24 95% 50%;
+    --gold: 43 96% 56%;
+    --gold-dark: 38 90% 45%;
+    --purple: 270 50% 40%;
+    --purple-light: 270 60% 60%;
+    --dark: 240 10% 8%;
 
-    --shadow-card: 0 4px 24px -4px hsl(220 30% 15% / 0.08);
-    --shadow-glow: 0 0 30px -8px hsl(24 95% 50% / 0.2);
+    --sidebar-background: 240 10% 8%;
+    --sidebar-foreground: 240 5% 75%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 240 10% 8%;
+    --sidebar-accent: 270 50% 40%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 8% 18%;
+    --sidebar-ring: 43 96% 56%;
+
+    --shadow-card: 0 4px 24px -4px hsl(240 10% 8% / 0.08);
+    --shadow-glow: 0 0 30px -8px hsl(43 96% 56% / 0.25);
+    --shadow-purple: 0 0 30px -8px hsl(270 50% 40% / 0.2);
 
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
@@ -83,8 +90,35 @@
     transform: translateY(-2px);
   }
 
+  .geo-card {
+    @apply relative rounded-2xl border border-border bg-card overflow-hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .geo-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, hsl(43 96% 56% / 0.03), hsl(270 50% 40% / 0.03));
+    pointer-events: none;
+  }
+  .geo-card:hover {
+    box-shadow: var(--shadow-glow), var(--shadow-card);
+    transform: translateY(-3px);
+    transition: all 0.3s ease-out;
+  }
+
   .gradient-text {
-    color: hsl(24 95% 50%);
+    background: linear-gradient(135deg, hsl(43 96% 56%), hsl(270 50% 40%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-gold {
+    background: linear-gradient(135deg, hsl(43 96% 56%), hsl(38 90% 45%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .gradient-border {
@@ -96,11 +130,34 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(24 95% 50%), hsl(24 80% 60%));
+    background: linear-gradient(135deg, hsl(43 96% 56%), hsl(270 50% 40%));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+  }
+
+  .hero-gradient {
+    background: radial-gradient(ellipse at 30% 0%, hsl(43 96% 56% / 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 100%, hsl(270 50% 40% / 0.06) 0%, transparent 50%);
+  }
+
+  .btn-gold {
+    @apply bg-primary text-primary-foreground font-body font-semibold rounded-full shadow-lg;
+    transition: all 0.2s ease;
+  }
+  .btn-gold:hover {
+    box-shadow: 0 8px 25px -5px hsl(43 96% 56% / 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-purple {
+    @apply bg-secondary text-secondary-foreground font-body font-semibold rounded-full;
+    transition: all 0.2s ease;
+  }
+  .btn-purple:hover {
+    box-shadow: 0 8px 25px -5px hsl(270 50% 40% / 0.3);
+    transform: translateY(-1px);
   }
 }
 
