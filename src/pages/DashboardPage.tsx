@@ -113,6 +113,7 @@ const DashboardPage = () => {
           </motion.div>
         </div>
       </main>
+      <SupportButton />
     </div>
   );
 };
