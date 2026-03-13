@@ -6,65 +6,47 @@ import LogoPlaceholder from "@/components/LogoPlaceholder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { nigerianStates } from "@/data/nigerianStates";
 
-const roleFields: Record<string, { label: string; fields: { name: string; label: string; type: string; placeholder: string }[] }> = {
+const commonFields = [
+  { name: "fullName", label: "Full Name", type: "text", placeholder: "John Doe" },
+  { name: "email", label: "Email Address", type: "email", placeholder: "john@email.com" },
+  { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
+  { name: "phone", label: "Phone Number", type: "tel", placeholder: "+234 800 000 0000" },
+];
+
+const roleExtras: Record<string, { label: string; fields: { name: string; label: string; type: string; placeholder: string; inputType?: string }[] }> = {
   student: {
-    label: "Student",
+    label: "Buyer",
     fields: [
-      { name: "fullName", label: "Full Name", type: "text", placeholder: "John Doe" },
-      { name: "email", label: "Email", type: "email", placeholder: "john@university.edu" },
-      { name: "phone", label: "Phone", type: "tel", placeholder: "+234 800 000 0000" },
-      { name: "school", label: "School / University", type: "text", placeholder: "University of Lagos" },
-      { name: "hostel", label: "Hostel / Location", type: "text", placeholder: "Block A, Room 12" },
-      { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
+      { name: "city", label: "City / LGA", type: "text", placeholder: "Ikeja" },
     ],
   },
   vendor: {
     label: "Vendor",
     fields: [
+      { name: "city", label: "City / LGA", type: "text", placeholder: "Ikeja" },
       { name: "businessName", label: "Business Name", type: "text", placeholder: "Mama's Kitchen" },
-      { name: "ownerName", label: "Owner Name", type: "text", placeholder: "Jane Doe" },
-      { name: "phone", label: "Phone", type: "tel", placeholder: "+234 800 000 0000" },
-      { name: "email", label: "Email", type: "email", placeholder: "vendor@email.com" },
-      { name: "campusLocation", label: "Campus Location", type: "text", placeholder: "Faculty of Science area" },
       { name: "foodCategory", label: "Food Category", type: "text", placeholder: "Nigerian, Continental" },
-      { name: "operatingHours", label: "Operating Hours", type: "text", placeholder: "8AM - 8PM" },
-      { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
+      { name: "businessDesc", label: "Business Description", type: "textarea", placeholder: "Tell us about your food business..." },
     ],
   },
   farmer: {
     label: "Farmer",
     fields: [
-      { name: "farmName", label: "Farm Name", type: "text", placeholder: "Green Valley Farm" },
-      { name: "farmerName", label: "Your Name", type: "text", placeholder: "Farmer Joe" },
-      { name: "phone", label: "Phone", type: "tel", placeholder: "+234 800 000 0000" },
-      { name: "email", label: "Email", type: "email", placeholder: "farmer@email.com" },
-      { name: "farmLocation", label: "Farm Location", type: "text", placeholder: "Ogun State" },
-      { name: "produceCategories", label: "Produce Categories", type: "text", placeholder: "Vegetables, Grains" },
-      { name: "harvestCapacity", label: "Weekly Harvest Capacity", type: "text", placeholder: "500kg" },
-      { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
+      { name: "city", label: "City / LGA", type: "text", placeholder: "Abeokuta" },
+      { name: "farmType", label: "Farm Type", type: "text", placeholder: "Crop, Livestock, Mixed" },
+      { name: "products", label: "Products Produced", type: "text", placeholder: "Tomatoes, Peppers, Rice" },
     ],
   },
   rider: {
     label: "Rider",
     fields: [
-      { name: "fullName", label: "Full Name", type: "text", placeholder: "Speed Rider" },
-      { name: "phone", label: "Phone", type: "tel", placeholder: "+234 800 000 0000" },
-      { name: "email", label: "Email", type: "email", placeholder: "rider@email.com" },
-      { name: "bikeType", label: "Bike Type", type: "text", placeholder: "Honda CG 125" },
-      { name: "licenseNumber", label: "License Number", type: "text", placeholder: "LAG-1234-XY" },
-      { name: "location", label: "Base Location", type: "text", placeholder: "Main Gate area" },
-      { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
-    ],
-  },
-  admin: {
-    label: "Admin",
-    fields: [
-      { name: "fullName", label: "Full Name", type: "text", placeholder: "Admin User" },
-      { name: "email", label: "Email", type: "email", placeholder: "admin@bukks.com" },
-      { name: "phone", label: "Phone", type: "tel", placeholder: "+234 800 000 0000" },
-      { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
+      { name: "city", label: "City / LGA", type: "text", placeholder: "Yaba" },
+      { name: "vehicleType", label: "Vehicle Type", type: "text", placeholder: "Motorcycle, Bicycle" },
+      { name: "license", label: "Driver License", type: "file", placeholder: "Upload license", inputType: "file" },
     ],
   },
 };
@@ -74,8 +56,8 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<Record<string, string>>({});
 
-  const config = roleFields[role || ""];
-  if (!config) {
+  const config = roleExtras[role || ""];
+  if (!config || role === "admin") {
     navigate("/");
     return null;
   }
@@ -94,7 +76,7 @@ const SignupPage = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-lg"
       >
-        <div className="glass-card p-8">
+        <div className="geo-card p-8">
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 font-body"
@@ -112,7 +94,8 @@ const SignupPage = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {config.fields.map((field) => (
+            {/* Common fields */}
+            {commonFields.map((field) => (
               <div key={field.name} className="space-y-1.5">
                 <Label className="text-sm font-body text-muted-foreground">{field.label}</Label>
                 <Input
@@ -120,27 +103,78 @@ const SignupPage = () => {
                   placeholder={field.placeholder}
                   value={formData[field.name] || ""}
                   onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                  className="bg-muted/50 border-border font-body text-foreground placeholder:text-muted-foreground/50 focus:ring-primary/30"
+                  className="bg-muted/50 border-border font-body"
                   required
                 />
               </div>
             ))}
 
-            {(role === "vendor" || role === "farmer") && (
+            {/* State dropdown */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-body text-muted-foreground">State</Label>
+              <select
+                required
+                className="w-full rounded-lg border border-input bg-muted/50 px-3 py-2 text-sm font-body"
+                value={formData.state || ""}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+              >
+                <option value="">Select your state</option>
+                {nigerianStates.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Role-specific fields */}
+            {config.fields.map((field) => (
+              <div key={field.name} className="space-y-1.5">
+                <Label className="text-sm font-body text-muted-foreground">{field.label}</Label>
+                {field.type === "textarea" ? (
+                  <Textarea
+                    placeholder={field.placeholder}
+                    value={formData[field.name] || ""}
+                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                    className="bg-muted/50 border-border font-body"
+                    rows={3}
+                  />
+                ) : field.type === "file" ? (
+                  <div className="glass-card p-5 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-body">Click to upload {field.label.toLowerCase()}</span>
+                  </div>
+                ) : (
+                  <Input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={formData[field.name] || ""}
+                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                    className="bg-muted/50 border-border font-body"
+                    required
+                  />
+                )}
+              </div>
+            ))}
+
+            {role === "vendor" && (
               <div className="space-y-1.5">
-                <Label className="text-sm font-body text-muted-foreground">
-                  {role === "vendor" ? "Kitchen Photos" : "Farm Images"}
-                </Label>
-                <div className="glass-card p-6 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
-                  <Upload className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground font-body">Click to upload images</span>
+                <Label className="text-sm font-body text-muted-foreground">Kitchen Photos</Label>
+                <div className="glass-card p-5 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground font-body">Upload kitchen images</span>
                 </div>
               </div>
             )}
 
-            <Button type="submit" className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground font-body font-semibold">
+            <Button type="submit" className="w-full mt-2 btn-gold py-5 text-base">
               Create Account
             </Button>
+
+            <p className="text-center text-xs text-muted-foreground font-body mt-4">
+              Already have an account?{" "}
+              <button type="button" onClick={() => navigate("/login")} className="text-secondary font-semibold hover:underline">
+                Log in
+              </button>
+            </p>
           </form>
         </div>
       </motion.div>
