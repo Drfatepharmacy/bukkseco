@@ -73,8 +73,8 @@ const Index = () => {
             </>
           )}
         </div>
+      </header>
 
-      {/* Hero */}
       <section className="hero-gradient relative overflow-hidden">
         <main className="flex flex-col lg:flex-row items-center justify-between px-6 pt-16 pb-24 max-w-7xl mx-auto gap-12">
           <motion.div
