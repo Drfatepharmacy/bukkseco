@@ -256,7 +256,7 @@ export type Database = {
           delivery_fee?: number | null
           id?: string
           notes?: string | null
-          order_number: string
+          order_number?: string
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount: number
