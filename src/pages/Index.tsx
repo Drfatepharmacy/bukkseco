@@ -57,10 +57,22 @@ const Index = () => {
           <a href="#group-buy" className="text-sm font-body font-medium text-foreground hover:text-primary transition-colors">Group Buy</a>
           <a href="#health-tips" className="text-sm font-body font-medium text-foreground hover:text-primary transition-colors">Health Tips</a>
         </nav>
-        <button onClick={() => navigate("/signup/student")} className="btn-gold text-sm px-6 py-2.5">
-          Get Started
-        </button>
-      </header>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <button onClick={() => navigate(`/dashboard/${role === "buyer" ? "student" : role}`)} className="btn-gold text-sm px-6 py-2.5">
+              Dashboard
+            </button>
+          ) : (
+            <>
+              <button onClick={() => navigate("/login")} className="text-sm font-body font-medium text-foreground hover:text-primary transition-colors">
+                Log in
+              </button>
+              <button onClick={() => navigate("/signup/student")} className="btn-gold text-sm px-6 py-2.5">
+                Get Started
+              </button>
+            </>
+          )}
+        </div>
 
       {/* Hero */}
       <section className="hero-gradient relative overflow-hidden">
