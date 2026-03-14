@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react";
 import LogoPlaceholder from "@/components/LogoPlaceholder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,63 +9,118 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { nigerianStates } from "@/data/nigerianStates";
+import { supabase } from "@/integrations/supabase/client";
 
-const commonFields = [
-  { name: "fullName", label: "Full Name", type: "text", placeholder: "John Doe" },
-  { name: "email", label: "Email Address", type: "email", placeholder: "john@email.com" },
-  { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
-  { name: "phone", label: "Phone Number", type: "tel", placeholder: "+234 800 000 0000" },
-];
+const roleMap: Record<string, { label: string; dbRole: string }> = {
+  student: { label: "Buyer", dbRole: "buyer" },
+  vendor: { label: "Vendor", dbRole: "vendor" },
+  farmer: { label: "Farmer", dbRole: "farmer" },
+  rider: { label: "Rider", dbRole: "rider" },
+};
 
-const roleExtras: Record<string, { label: string; fields: { name: string; label: string; type: string; placeholder: string; inputType?: string }[] }> = {
-  student: {
-    label: "Buyer",
-    fields: [
-      { name: "city", label: "City / LGA", type: "text", placeholder: "Ikeja" },
-    ],
-  },
-  vendor: {
-    label: "Vendor",
-    fields: [
-      { name: "city", label: "City / LGA", type: "text", placeholder: "Ikeja" },
-      { name: "businessName", label: "Business Name", type: "text", placeholder: "Mama's Kitchen" },
-      { name: "foodCategory", label: "Food Category", type: "text", placeholder: "Nigerian, Continental" },
-      { name: "businessDesc", label: "Business Description", type: "textarea", placeholder: "Tell us about your food business..." },
-    ],
-  },
-  farmer: {
-    label: "Farmer",
-    fields: [
-      { name: "city", label: "City / LGA", type: "text", placeholder: "Abeokuta" },
-      { name: "farmType", label: "Farm Type", type: "text", placeholder: "Crop, Livestock, Mixed" },
-      { name: "products", label: "Products Produced", type: "text", placeholder: "Tomatoes, Peppers, Rice" },
-    ],
-  },
-  rider: {
-    label: "Rider",
-    fields: [
-      { name: "city", label: "City / LGA", type: "text", placeholder: "Yaba" },
-      { name: "vehicleType", label: "Vehicle Type", type: "text", placeholder: "Motorcycle, Bicycle" },
-      { name: "license", label: "Driver License", type: "file", placeholder: "Upload license", inputType: "file" },
-    ],
-  },
+const roleExtras: Record<string, { name: string; label: string; type: string; placeholder: string }[]> = {
+  vendor: [
+    { name: "businessName", label: "Business Name", type: "text", placeholder: "Mama's Kitchen" },
+    { name: "foodCategory", label: "Food Category", type: "text", placeholder: "Nigerian, Continental" },
+    { name: "businessDesc", label: "Business Description", type: "textarea", placeholder: "Tell us about your food business..." },
+  ],
+  farmer: [
+    { name: "farmType", label: "Farm Type", type: "text", placeholder: "Crop, Livestock, Mixed" },
+    { name: "products", label: "Products Produced", type: "text", placeholder: "Tomatoes, Peppers, Rice" },
+  ],
+  rider: [
+    { name: "vehicleType", label: "Vehicle Type", type: "text", placeholder: "Motorcycle, Bicycle" },
+    { name: "license", label: "Driver License", type: "file", placeholder: "Upload license" },
+  ],
 };
 
 const SignupPage = () => {
   const { role } = useParams<{ role: string }>();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const config = roleExtras[role || ""];
+  const config = roleMap[role || ""];
   if (!config || role === "admin") {
     navigate("/");
     return null;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const extraFields = roleExtras[role || ""] || [];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(`Welcome to BUKKS as a ${config.label}!`);
-    navigate(`/dashboard/${role}`);
+    setLoading(true);
+
+    try {
+      // 1. Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: config.dbRole,
+          },
+        },
+      });
+
+      if (authError) {
+        toast.error(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!authData.user) {
+        toast.error("Signup failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const userId = authData.user.id;
+
+      // 2. Update profile with additional fields
+      await supabase.from("profiles").update({
+        phone: formData.phone || null,
+        state: formData.state || null,
+        city: formData.city || null,
+      }).eq("id", userId);
+
+      // 3. Insert role-specific profile
+      if (role === "vendor") {
+        await supabase.from("vendor_profiles").insert({
+          user_id: userId,
+          business_name: formData.businessName,
+          food_category: formData.foodCategory || null,
+          business_description: formData.businessDesc || null,
+        });
+      } else if (role === "farmer") {
+        await supabase.from("farmer_profiles").insert({
+          user_id: userId,
+          farm_type: formData.farmType || null,
+          products: formData.products || null,
+        });
+      } else if (role === "rider") {
+        await supabase.from("rider_profiles").insert({
+          user_id: userId,
+          vehicle_type: formData.vehicleType || null,
+        });
+      }
+
+      if (role === "student") {
+        toast.success("Welcome to BUKKS! Your account is ready.");
+        navigate(`/dashboard/student`);
+      } else {
+        toast.success(`Account created! Your ${config.label} account is pending admin approval.`);
+        navigate("/login");
+      }
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
+      console.error(err);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -94,22 +149,64 @@ const SignupPage = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Common fields */}
-            {commonFields.map((field) => (
-              <div key={field.name} className="space-y-1.5">
-                <Label className="text-sm font-body text-muted-foreground">{field.label}</Label>
-                <Input
-                  type={field.type}
-                  placeholder={field.placeholder}
-                  value={formData[field.name] || ""}
-                  onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                  className="bg-muted/50 border-border font-body"
-                  required
-                />
-              </div>
-            ))}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-body text-muted-foreground">Full Name</Label>
+              <Input
+                type="text"
+                placeholder="John Doe"
+                value={formData.fullName || ""}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                className="bg-muted/50 border-border font-body"
+                required
+              />
+            </div>
 
-            {/* State dropdown */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-body text-muted-foreground">Email Address</Label>
+              <Input
+                type="email"
+                placeholder="john@email.com"
+                value={formData.email || ""}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="bg-muted/50 border-border font-body"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-body text-muted-foreground">Password</Label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password || ""}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="bg-muted/50 border-border font-body pr-10"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-body text-muted-foreground">Phone Number</Label>
+              <Input
+                type="tel"
+                placeholder="+234 800 000 0000"
+                value={formData.phone || ""}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="bg-muted/50 border-border font-body"
+                required
+              />
+            </div>
+
             <div className="space-y-1.5">
               <Label className="text-sm font-body text-muted-foreground">State</Label>
               <select
@@ -125,8 +222,20 @@ const SignupPage = () => {
               </select>
             </div>
 
+            <div className="space-y-1.5">
+              <Label className="text-sm font-body text-muted-foreground">City / LGA</Label>
+              <Input
+                type="text"
+                placeholder="Ikeja"
+                value={formData.city || ""}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="bg-muted/50 border-border font-body"
+                required
+              />
+            </div>
+
             {/* Role-specific fields */}
-            {config.fields.map((field) => (
+            {extraFields.map((field) => (
               <div key={field.name} className="space-y-1.5">
                 <Label className="text-sm font-body text-muted-foreground">{field.label}</Label>
                 {field.type === "textarea" ? (
@@ -165,8 +274,12 @@ const SignupPage = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full mt-2 btn-gold py-5 text-base">
-              Create Account
+            <Button
+              type="submit"
+              className="w-full mt-2 btn-gold py-5 text-base"
+              disabled={loading}
+            >
+              {loading ? "Creating Account..." : "Create Account"}
             </Button>
 
             <p className="text-center text-xs text-muted-foreground font-body mt-4">
