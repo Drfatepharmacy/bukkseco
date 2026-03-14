@@ -9,15 +9,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import jollofImg from "@/assets/jollof-egusi.png";
 
-const featuredMeals = [
-  { name: "Jollof Rice & Chicken", vendor: "Mama's Kitchen", price: "₦2,500", rating: 4.8, emoji: "🍚" },
-  { name: "Amala & Ewedu", vendor: "Iya Basira", price: "₦1,800", rating: 4.6, emoji: "🍲" },
-  { name: "Fried Rice & Plantain", vendor: "Campus Bites", price: "₦2,200", rating: 4.7, emoji: "🍛" },
-  { name: "Beans & Plantain", vendor: "The Food Hub", price: "₦1,500", rating: 4.5, emoji: "🫘" },
-];
-
 const Index = () => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
+
+  const { data: dbMeals = [] } = useQuery({
+    queryKey: ["featured-meals"],
+    queryFn: async () => {
+      const { data } = await supabase.from("meals").select("*").eq("is_available", true).order("rating_avg", { ascending: false }).limit(4);
+      return data || [];
+    },
+  });
+
+  const { data: dbTips = [] } = useQuery({
+    queryKey: ["landing-tips"],
+    queryFn: async () => {
+      const { data } = await supabase.from("health_tips").select("*").eq("is_active", true).limit(3);
+      return data || [];
+    },
+  });
+
+  const featuredMeals = dbMeals.length > 0 ? dbMeals.map((m: any) => ({
+    name: m.name, vendor: m.category || "Vendor", price: `₦${Number(m.price).toLocaleString()}`, rating: Number(m.rating_avg || 0).toFixed(1), emoji: "🍽️", image_url: m.image_url,
+  })) : [
+    { name: "Jollof Rice & Chicken", vendor: "Mama's Kitchen", price: "₦2,500", rating: "4.8", emoji: "🍚" },
+    { name: "Amala & Ewedu", vendor: "Iya Basira", price: "₦1,800", rating: "4.6", emoji: "🍲" },
+    { name: "Fried Rice & Plantain", vendor: "Campus Bites", price: "₦2,200", rating: "4.7", emoji: "🍛" },
+    { name: "Beans & Plantain", vendor: "The Food Hub", price: "₦1,500", rating: "4.5", emoji: "🫘" },
+  ];
+
+  const healthTips = dbTips.length > 0 ? dbTips.map((t: any) => ({
+    tip: t.content, icon: t.category === "hydration" ? "💧" : t.category === "nutrition" ? "🥗" : "🌅",
+  })) : [
+    { tip: "Stay hydrated — drink at least 8 glasses of water daily for better focus.", icon: "💧" },
+    { tip: "Add vegetables to every meal for a balanced diet and more energy.", icon: "🥗" },
+    { tip: "Eating breakfast boosts your metabolism and helps you concentrate in class.", icon: "🌅" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
