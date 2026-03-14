@@ -3,8 +3,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
+import LoginPage from "./pages/LoginPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import HowItWorksPage from "./pages/HowItWorksPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
@@ -18,14 +21,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/signup/:role" element={<SignupPage />} />
-          <Route path="/dashboard/:role" element={<DashboardPage />} />
-          <Route path="/how-it-works" element={<HowItWorksPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/signup/:role" element={<SignupPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/dashboard/:role"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
