@@ -4,13 +4,10 @@ import { ShoppingBag, Utensils, Sprout, Bike, Users, Heart, Clock, ArrowRight, S
 import LogoPlaceholder from "@/components/LogoPlaceholder";
 import Footer from "@/components/Footer";
 import SupportButton from "@/components/SupportButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import jollofImg from "@/assets/jollof-egusi.png";
-
-const healthTips = [
-  { tip: "Stay hydrated — drink at least 8 glasses of water daily for better focus.", icon: "💧" },
-  { tip: "Add vegetables to every meal for a balanced diet and more energy.", icon: "🥗" },
-  { tip: "Eating breakfast boosts your metabolism and helps you concentrate in class.", icon: "🌅" },
-];
 
 const featuredMeals = [
   { name: "Jollof Rice & Chicken", vendor: "Mama's Kitchen", price: "₦2,500", rating: 4.8, emoji: "🍚" },
