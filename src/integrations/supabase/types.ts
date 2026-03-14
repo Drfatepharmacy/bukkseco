@@ -41,6 +41,244 @@ export type Database = {
         }
         Relationships: []
       }
+      group_buy_participants: {
+        Row: {
+          group_buy_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_buy_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_buy_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_buy_participants_group_buy_id_fkey"
+            columns: ["group_buy_id"]
+            isOneToOne: false
+            referencedRelation: "group_buys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_buys: {
+        Row: {
+          created_at: string
+          creator_id: string
+          current_participants: number
+          expires_at: string
+          group_price: number
+          id: string
+          meal_id: string
+          min_participants: number
+          original_price: number
+          status: Database["public"]["Enums"]["group_buy_status"]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          current_participants?: number
+          expires_at: string
+          group_price: number
+          id?: string
+          meal_id: string
+          min_participants: number
+          original_price: number
+          status?: Database["public"]["Enums"]["group_buy_status"]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          current_participants?: number
+          expires_at?: string
+          group_price?: number
+          id?: string
+          meal_id?: string
+          min_participants?: number
+          original_price?: number
+          status?: Database["public"]["Enums"]["group_buy_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_buys_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_tips: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
+      meals: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          name: string
+          price: number
+          rating_avg: number | null
+          rating_count: number | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name: string
+          price: number
+          rating_avg?: number | null
+          rating_count?: number | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name?: string
+          price?: number
+          rating_avg?: number | null
+          rating_count?: number | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          meal_id: string
+          order_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_id: string
+          order_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_id?: string
+          order_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          delivery_address: string | null
+          delivery_fee: number | null
+          id: string
+          notes: string | null
+          order_number: string
+          rider_id: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          total_amount: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_fee?: number | null
+          id?: string
+          notes?: string | null
+          order_number: string
+          rider_id?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_fee?: number | null
+          id?: string
+          notes?: string | null
+          order_number?: string
+          rider_id?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -79,6 +317,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          rating: number
+          reviewer_id: string
+          vendor_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          rating: number
+          reviewer_id: string
+          vendor_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          reviewer_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rider_profiles: {
         Row: {
@@ -177,6 +453,15 @@ export type Database = {
     }
     Enums: {
       app_role: "buyer" | "vendor" | "farmer" | "rider" | "admin"
+      group_buy_status: "active" | "completed" | "expired" | "cancelled"
+      order_status:
+        | "pending"
+        | "confirmed"
+        | "preparing"
+        | "rider_assigned"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -305,6 +590,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["buyer", "vendor", "farmer", "rider", "admin"],
+      group_buy_status: ["active", "completed", "expired", "cancelled"],
+      order_status: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "rider_assigned",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
     },
   },
 } as const
