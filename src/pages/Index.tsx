@@ -4,23 +4,47 @@ import { ShoppingBag, Utensils, Sprout, Bike, Users, Heart, Clock, ArrowRight, S
 import LogoPlaceholder from "@/components/LogoPlaceholder";
 import Footer from "@/components/Footer";
 import SupportButton from "@/components/SupportButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import jollofImg from "@/assets/jollof-egusi.png";
-
-const healthTips = [
-  { tip: "Stay hydrated — drink at least 8 glasses of water daily for better focus.", icon: "💧" },
-  { tip: "Add vegetables to every meal for a balanced diet and more energy.", icon: "🥗" },
-  { tip: "Eating breakfast boosts your metabolism and helps you concentrate in class.", icon: "🌅" },
-];
-
-const featuredMeals = [
-  { name: "Jollof Rice & Chicken", vendor: "Mama's Kitchen", price: "₦2,500", rating: 4.8, emoji: "🍚" },
-  { name: "Amala & Ewedu", vendor: "Iya Basira", price: "₦1,800", rating: 4.6, emoji: "🍲" },
-  { name: "Fried Rice & Plantain", vendor: "Campus Bites", price: "₦2,200", rating: 4.7, emoji: "🍛" },
-  { name: "Beans & Plantain", vendor: "The Food Hub", price: "₦1,500", rating: 4.5, emoji: "🫘" },
-];
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
+
+  const { data: dbMeals = [] } = useQuery({
+    queryKey: ["featured-meals"],
+    queryFn: async () => {
+      const { data } = await supabase.from("meals").select("*").eq("is_available", true).order("rating_avg", { ascending: false }).limit(4);
+      return data || [];
+    },
+  });
+
+  const { data: dbTips = [] } = useQuery({
+    queryKey: ["landing-tips"],
+    queryFn: async () => {
+      const { data } = await supabase.from("health_tips").select("*").eq("is_active", true).limit(3);
+      return data || [];
+    },
+  });
+
+  const featuredMeals = dbMeals.length > 0 ? dbMeals.map((m: any) => ({
+    name: m.name, vendor: m.category || "Vendor", price: `₦${Number(m.price).toLocaleString()}`, rating: Number(m.rating_avg || 0).toFixed(1), emoji: "🍽️", image_url: m.image_url,
+  })) : [
+    { name: "Jollof Rice & Chicken", vendor: "Mama's Kitchen", price: "₦2,500", rating: "4.8", emoji: "🍚" },
+    { name: "Amala & Ewedu", vendor: "Iya Basira", price: "₦1,800", rating: "4.6", emoji: "🍲" },
+    { name: "Fried Rice & Plantain", vendor: "Campus Bites", price: "₦2,200", rating: "4.7", emoji: "🍛" },
+    { name: "Beans & Plantain", vendor: "The Food Hub", price: "₦1,500", rating: "4.5", emoji: "🫘" },
+  ];
+
+  const healthTips = dbTips.length > 0 ? dbTips.map((t: any) => ({
+    tip: t.content, icon: t.category === "hydration" ? "💧" : t.category === "nutrition" ? "🥗" : "🌅",
+  })) : [
+    { tip: "Stay hydrated — drink at least 8 glasses of water daily for better focus.", icon: "💧" },
+    { tip: "Add vegetables to every meal for a balanced diet and more energy.", icon: "🥗" },
+    { tip: "Eating breakfast boosts your metabolism and helps you concentrate in class.", icon: "🌅" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -33,12 +57,24 @@ const Index = () => {
           <a href="#group-buy" className="text-sm font-body font-medium text-foreground hover:text-primary transition-colors">Group Buy</a>
           <a href="#health-tips" className="text-sm font-body font-medium text-foreground hover:text-primary transition-colors">Health Tips</a>
         </nav>
-        <button onClick={() => navigate("/signup/student")} className="btn-gold text-sm px-6 py-2.5">
-          Get Started
-        </button>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <button onClick={() => navigate(`/dashboard/${role === "buyer" ? "student" : role}`)} className="btn-gold text-sm px-6 py-2.5">
+              Dashboard
+            </button>
+          ) : (
+            <>
+              <button onClick={() => navigate("/login")} className="text-sm font-body font-medium text-foreground hover:text-primary transition-colors">
+                Log in
+              </button>
+              <button onClick={() => navigate("/signup/student")} className="btn-gold text-sm px-6 py-2.5">
+                Get Started
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
-      {/* Hero */}
       <section className="hero-gradient relative overflow-hidden">
         <main className="flex flex-col lg:flex-row items-center justify-between px-6 pt-16 pb-24 max-w-7xl mx-auto gap-12">
           <motion.div

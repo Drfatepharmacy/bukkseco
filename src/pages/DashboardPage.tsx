@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  LayoutDashboard, ShoppingBag, Truck, Wallet, Star, Clock,
-  Package, BarChart3, Settings, Users, CheckCircle, AlertTriangle,
-  Utensils, Sprout, MapPin, History, TrendingUp, Bike
-} from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import StatCard from "@/components/StatCard";
 import InteractiveChart from "@/components/InteractiveChart";
 import FoodHero from "@/components/FoodHero";
 import AdminApprovals from "@/components/AdminApprovals";
 import SupportButton from "@/components/SupportButton";
+import VendorMenuManager from "@/components/VendorMenuManager";
+import BrowseFood from "@/components/BrowseFood";
+import GroupBuySection from "@/components/GroupBuySection";
+import OrdersList from "@/components/OrdersList";
+import HealthTipsLive from "@/components/HealthTipsLive";
 import { dashboardConfigs } from "@/config/dashboardConfig";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const DashboardPage = () => {
   const { role } = useParams<{ role: string }>();
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("Overview");
 
@@ -32,6 +35,89 @@ const DashboardPage = () => {
     onClick: () => setActiveNav(item.label),
   }));
 
+  const renderContent = () => {
+    // Vendor: Manage Menu
+    if (role === "vendor" && activeNav === "Manage Menu") return <VendorMenuManager />;
+    if (role === "vendor" && activeNav === "Orders") return <OrdersList viewAs="vendor" />;
+
+    // Buyer: Browse Food, My Orders, Group Buy
+    if (role === "student" && activeNav === "Browse Food") return <BrowseFood />;
+    if (role === "student" && activeNav === "My Orders") return <OrdersList viewAs="buyer" />;
+    if (role === "student" && activeNav === "Farm Produce") return <GroupBuySection />;
+
+    // Rider: Orders
+    if (role === "rider" && activeNav === "Available Deliveries") return <OrdersList viewAs="rider" />;
+
+    // Farmer: Upload Produce (reuse vendor menu manager pattern)
+    if (role === "farmer" && activeNav === "Upload Produce") return <VendorMenuManager />;
+
+    // Admin
+    if (role === "admin" && activeNav === "Approve Vendors") return <AdminApprovals />;
+    if (role === "admin" && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
+
+    // Default: Overview
+    return (
+      <>
+        {role === "student" && <FoodHero />}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {config.stats.map((stat, i) => (
+            <StatCard key={i} {...stat} />
+          ))}
+        </div>
+
+        {role === "admin" && <div className="mb-8"><AdminApprovals /></div>}
+
+        {/* Health Tips on student overview */}
+        {role === "student" && <div className="mb-8"><HealthTipsLive /></div>}
+
+        {/* Group Buy preview on student overview */}
+        {role === "student" && <div className="mb-8"><GroupBuySection /></div>}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+          {config.charts.map((chart, i) => (
+            <InteractiveChart key={i} {...chart} />
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="glass-card p-5"
+        >
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4">Recent Activity</h3>
+          <div className="space-y-3">
+            {[
+              { text: "New order #1247 received", time: "2 min ago", status: "active" },
+              { text: "Payment of ₦3,500 processed", time: "15 min ago", status: "success" },
+              { text: "Delivery completed for order #1245", time: "1 hour ago", status: "done" },
+              { text: "New review received - 5 stars", time: "3 hours ago", status: "info" },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    item.status === "active" ? "bg-primary animate-pulse" :
+                    item.status === "success" ? "bg-success" :
+                    "bg-muted-foreground"
+                  }`} />
+                  <span className="text-sm font-body text-foreground">{item.text}</span>
+                </div>
+                <span className="text-xs text-muted-foreground font-body">{item.time}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <DashboardSidebar
@@ -46,71 +132,20 @@ const DashboardPage = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-8 flex items-center justify-between"
           >
-            <h1 className="font-display text-3xl font-bold text-foreground">{config.label}</h1>
-            <p className="text-muted-foreground font-body text-sm mt-1">Welcome back! Here's your overview.</p>
+            <div>
+              <h1 className="font-display text-3xl font-bold text-foreground">{config.label}</h1>
+              <p className="text-muted-foreground font-body text-sm mt-1">
+                {user?.email ? `Welcome, ${user.user_metadata?.full_name || user.email}` : "Welcome back!"}
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => { signOut(); navigate("/"); }} className="font-body text-sm">
+              Log Out
+            </Button>
           </motion.div>
 
-          {/* Student food hero */}
-          {role === "student" && <FoodHero />}
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {config.stats.map((stat, i) => (
-              <StatCard key={i} {...stat} />
-            ))}
-          </div>
-
-          {/* Admin approvals */}
-          {role === "admin" && activeNav === "Overview" && (
-            <div className="mb-8">
-              <AdminApprovals />
-            </div>
-          )}
-
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-            {config.charts.map((chart, i) => (
-              <InteractiveChart key={i} {...chart} />
-            ))}
-          </div>
-
-          {/* Recent Activity */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="glass-card p-5"
-          >
-            <h3 className="font-display text-sm font-semibold text-foreground mb-4">Recent Activity</h3>
-            <div className="space-y-3">
-              {[
-                { text: "New order #1247 received", time: "2 min ago", status: "active" },
-                { text: "Payment of ₦3,500 processed", time: "15 min ago", status: "success" },
-                { text: "Delivery completed for order #1245", time: "1 hour ago", status: "done" },
-                { text: "New review received - 5 stars", time: "3 hours ago", status: "info" },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      item.status === "active" ? "bg-primary animate-pulse" :
-                      item.status === "success" ? "bg-success" :
-                      "bg-muted-foreground"
-                    }`} />
-                    <span className="text-sm font-body text-foreground">{item.text}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground font-body">{item.time}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+          {renderContent()}
         </div>
       </main>
       <SupportButton />
