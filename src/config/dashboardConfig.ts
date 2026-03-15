@@ -43,9 +43,11 @@ export const dashboardConfigs: Record<string, {
       { label: "Browse Food", icon: Utensils },
       { label: "Farm Produce", icon: Sprout },
       { label: "My Orders", icon: ShoppingBag },
+      { label: "Reservations", icon: CalendarDays },
+      { label: "Campus Feed", icon: Megaphone },
+      { label: "Messages", icon: MessageCircle },
       { label: "Track Delivery", icon: Truck },
       { label: "Wallet", icon: Wallet },
-      { label: "Order History", icon: Clock },
       { label: "Settings", icon: Settings },
     ],
     charts: [
