@@ -136,7 +136,7 @@ const RiderDeliverySystem = () => {
     toast({ title: isAvailable ? "You're now offline" : "You're now online" });
   };
 
-  const activeDeliveries = assignments.filter((a) => ["accepted", "picked_up"].includes(a.status) && a.rider_id === user?.id);
+  const activeDeliveries = assignments.filter((a) => ["accepted", "picked_up"].includes(a.status));
   const availableDeliveries = assignments.filter((a) => a.status === "offered");
 
   return (
