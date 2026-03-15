@@ -89,7 +89,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Overview", icon: LayoutDashboard },
       { label: "Upload Produce", icon: Sprout },
       { label: "Manage Stock", icon: Package },
-      { label: "Bulk Orders", icon: ShoppingBag },
+      { label: "Messages", icon: MessageCircle },
       { label: "Delivery Schedule", icon: Truck },
       { label: "Revenue", icon: TrendingUp },
       { label: "Settings", icon: Settings },
