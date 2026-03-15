@@ -110,6 +110,8 @@ export const dashboardConfigs: Record<string, {
     navItems: [
       { label: "Overview", icon: LayoutDashboard },
       { label: "Available Deliveries", icon: Package },
+      { label: "Browse Food", icon: Utensils },
+      { label: "Messages", icon: MessageCircle },
       { label: "Navigation", icon: MapPin },
       { label: "Earnings", icon: Wallet },
       { label: "Delivery History", icon: History },
