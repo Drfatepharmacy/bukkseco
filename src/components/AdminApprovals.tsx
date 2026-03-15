@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, Clock, Store, Sprout, Bike, User } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Store, Sprout, Bike, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface PendingAccount {
   id: string;
+  user_id: string;
   name: string;
-  role: "vendor" | "farmer" | "rider";
   email: string;
-  date: string;
-  status: "pending" | "approved" | "rejected";
+  role: "vendor" | "farmer" | "rider";
+  created_at: string;
+  extra: string;
 }
 
 const roleIcons = { vendor: Store, farmer: Sprout, rider: Bike };
@@ -18,39 +21,129 @@ const roleBadgeColors = {
   rider: "bg-secondary/10 text-secondary",
 };
 
-const initialAccounts: PendingAccount[] = [
-  { id: "1", name: "Mama's Kitchen", role: "vendor", email: "mama@email.com", date: "2 hours ago", status: "pending" },
-  { id: "2", name: "Green Valley Farm", role: "farmer", email: "green@email.com", date: "5 hours ago", status: "pending" },
-  { id: "3", name: "Speed Rider", role: "rider", email: "speed@email.com", date: "1 day ago", status: "pending" },
-  { id: "4", name: "Iya Basira Foods", role: "vendor", email: "basira@email.com", date: "1 day ago", status: "pending" },
-  { id: "5", name: "Organic Fields", role: "farmer", email: "organic@email.com", date: "2 days ago", status: "pending" },
-];
+const profileTables = {
+  vendor: "vendor_profiles",
+  farmer: "farmer_profiles",
+  rider: "rider_profiles",
+} as const;
 
-const AdminApprovals = () => {
-  const [accounts, setAccounts] = useState(initialAccounts);
+interface AdminApprovalsProps {
+  filterRole?: "vendor" | "farmer" | "rider";
+}
 
-  const updateStatus = (id: string, status: "approved" | "rejected") => {
-    setAccounts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status } : a))
-    );
+const AdminApprovals = ({ filterRole }: AdminApprovalsProps) => {
+  const [accounts, setAccounts] = useState<PendingAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const fetchPending = async () => {
+    setLoading(true);
+    const rolesToFetch = filterRole ? [filterRole] : (["vendor", "farmer", "rider"] as const);
+    const all: PendingAccount[] = [];
+
+    for (const r of rolesToFetch) {
+      const table = profileTables[r];
+      const { data, error } = await supabase
+        .from(table)
+        .select("id, user_id, created_at, is_approved" + (r === "vendor" ? ", business_name, food_category" : r === "farmer" ? ", farm_type, products" : ", vehicle_type"))
+        .eq("is_approved", false);
+
+      if (error) {
+        console.error(`Error fetching ${r}:`, error);
+        continue;
+      }
+
+      if (!data || data.length === 0) continue;
+
+      // Fetch profile info for each user
+      const userIds = data.map((d: any) => d.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+
+      for (const item of data as any[]) {
+        const profile = profileMap.get(item.user_id);
+        all.push({
+          id: item.id,
+          user_id: item.user_id,
+          name: r === "vendor" ? item.business_name : (profile?.full_name || "Unknown"),
+          email: profile?.email || "",
+          role: r,
+          created_at: item.created_at,
+          extra: r === "vendor" ? (item.food_category || "") : r === "farmer" ? (item.farm_type || "") : (item.vehicle_type || ""),
+        });
+      }
+    }
+
+    all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    setAccounts(all);
+    setLoading(false);
   };
 
-  const pending = accounts.filter((a) => a.status === "pending");
-  const processed = accounts.filter((a) => a.status !== "pending");
+  useEffect(() => { fetchPending(); }, [filterRole]);
+
+  const handleAction = async (account: PendingAccount, approve: boolean) => {
+    setProcessing(account.id);
+    const table = profileTables[account.role];
+
+    // Update role-specific profile
+    const { error: profileError } = await supabase
+      .from(table)
+      .update({ is_approved: approve } as any)
+      .eq("id", account.id);
+
+    if (profileError) {
+      toast({ title: "Error", description: profileError.message, variant: "destructive" });
+      setProcessing(null);
+      return;
+    }
+
+    // Update main profile approval if approving
+    if (approve) {
+      await supabase.from("profiles").update({ is_approved: true }).eq("id", account.user_id);
+    }
+
+    toast({
+      title: approve ? "Approved ✓" : "Rejected",
+      description: `${account.name} has been ${approve ? "approved" : "rejected"}.`,
+    });
+
+    setAccounts((prev) => prev.filter((a) => a.id !== account.id));
+    setProcessing(null);
+  };
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Pending */}
+    <div className="space-y-4">
       <div className="glass-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-4 h-4 text-primary" />
           <h3 className="font-display text-sm font-semibold text-foreground">
-            Pending Approvals ({pending.length})
+            Pending {filterRole ? `${filterRole.charAt(0).toUpperCase() + filterRole.slice(1)}` : ""} Approvals ({accounts.length})
           </h3>
         </div>
         <div className="space-y-3">
           <AnimatePresence>
-            {pending.map((account) => {
+            {accounts.map((account) => {
               const Icon = roleIcons[account.role];
               return (
                 <motion.div
@@ -67,7 +160,10 @@ const AdminApprovals = () => {
                     </div>
                     <div>
                       <p className="text-sm font-body font-medium text-foreground">{account.name}</p>
-                      <p className="text-xs text-muted-foreground font-body">{account.email} · {account.date}</p>
+                      <p className="text-xs text-muted-foreground font-body">
+                        {account.email} · {timeAgo(account.created_at)}
+                        {account.extra && ` · ${account.extra}`}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -75,14 +171,16 @@ const AdminApprovals = () => {
                       {account.role}
                     </span>
                     <button
-                      onClick={() => updateStatus(account.id, "approved")}
-                      className="p-1.5 rounded-lg bg-success/10 text-success hover:bg-success/20 transition-colors"
+                      disabled={processing === account.id}
+                      onClick={() => handleAction(account, true)}
+                      className="p-1.5 rounded-lg bg-success/10 text-success hover:bg-success/20 transition-colors disabled:opacity-50"
                     >
-                      <CheckCircle className="w-4 h-4" />
+                      {processing === account.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                     </button>
                     <button
-                      onClick={() => updateStatus(account.id, "rejected")}
-                      className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                      disabled={processing === account.id}
+                      onClick={() => handleAction(account, false)}
+                      className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50"
                     >
                       <XCircle className="w-4 h-4" />
                     </button>
@@ -91,38 +189,13 @@ const AdminApprovals = () => {
               );
             })}
           </AnimatePresence>
-          {pending.length === 0 && (
-            <p className="text-sm text-muted-foreground font-body text-center py-4">All accounts have been reviewed ✓</p>
+          {accounts.length === 0 && (
+            <p className="text-sm text-muted-foreground font-body text-center py-4">
+              No pending {filterRole || ""} approvals ✓
+            </p>
           )}
         </div>
       </div>
-
-      {/* Processed */}
-      {processed.length > 0 && (
-        <div className="glass-card p-5">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-4">Recently Processed</h3>
-          <div className="space-y-2">
-            {processed.map((account) => {
-              const Icon = roleIcons[account.role];
-              return (
-                <div key={account.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-body text-foreground">{account.name}</span>
-                  </div>
-                  <span className={`text-xs font-body font-medium px-2 py-0.5 rounded-full ${
-                    account.status === "approved"
-                      ? "bg-success/10 text-success"
-                      : "bg-destructive/10 text-destructive"
-                  }`}>
-                    {account.status}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
