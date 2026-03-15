@@ -136,6 +136,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Approve Farmers", icon: Sprout },
       { label: "Verify Riders", icon: Bike },
       { label: "Monitor Orders", icon: Package },
+      { label: "Campus Feed", icon: Megaphone },
       { label: "Analytics", icon: BarChart3 },
       { label: "Disputes", icon: AlertTriangle },
       { label: "Payouts", icon: Wallet },
