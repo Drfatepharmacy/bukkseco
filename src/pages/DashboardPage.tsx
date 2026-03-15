@@ -52,7 +52,9 @@ const DashboardPage = () => {
     if (role === "farmer" && activeNav === "Upload Produce") return <VendorMenuManager />;
 
     // Admin
-    if (role === "admin" && activeNav === "Approve Vendors") return <AdminApprovals />;
+    if (role === "admin" && activeNav === "Approve Vendors") return <AdminApprovals filterRole="vendor" />;
+    if (role === "admin" && activeNav === "Approve Farmers") return <AdminApprovals filterRole="farmer" />;
+    if (role === "admin" && activeNav === "Verify Riders") return <AdminApprovals filterRole="rider" />;
     if (role === "admin" && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
 
     // Default: Overview
