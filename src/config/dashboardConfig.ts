@@ -1,7 +1,8 @@
 import {
   LayoutDashboard, ShoppingBag, Truck, Wallet, Star, Clock,
   Package, BarChart3, Settings, Users, CheckCircle, AlertTriangle,
-  Utensils, Sprout, MapPin, History, TrendingUp, Bike
+  Utensils, Sprout, MapPin, History, TrendingUp, Bike,
+  MessageCircle, CalendarDays, Megaphone
 } from "lucide-react";
 
 const weeklyData = [
@@ -42,9 +43,11 @@ export const dashboardConfigs: Record<string, {
       { label: "Browse Food", icon: Utensils },
       { label: "Farm Produce", icon: Sprout },
       { label: "My Orders", icon: ShoppingBag },
+      { label: "Reservations", icon: CalendarDays },
+      { label: "Campus Feed", icon: Megaphone },
+      { label: "Messages", icon: MessageCircle },
       { label: "Track Delivery", icon: Truck },
       { label: "Wallet", icon: Wallet },
-      { label: "Order History", icon: Clock },
       { label: "Settings", icon: Settings },
     ],
     charts: [
@@ -64,8 +67,9 @@ export const dashboardConfigs: Record<string, {
       { label: "Overview", icon: LayoutDashboard },
       { label: "Manage Menu", icon: Utensils },
       { label: "Orders", icon: Package },
+      { label: "Reservations", icon: CalendarDays },
+      { label: "Messages", icon: MessageCircle },
       { label: "Revenue", icon: TrendingUp },
-      { label: "Analytics", icon: BarChart3 },
       { label: "Settings", icon: Settings },
     ],
     charts: [
@@ -85,7 +89,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Overview", icon: LayoutDashboard },
       { label: "Upload Produce", icon: Sprout },
       { label: "Manage Stock", icon: Package },
-      { label: "Bulk Orders", icon: ShoppingBag },
+      { label: "Messages", icon: MessageCircle },
       { label: "Delivery Schedule", icon: Truck },
       { label: "Revenue", icon: TrendingUp },
       { label: "Settings", icon: Settings },
@@ -106,6 +110,8 @@ export const dashboardConfigs: Record<string, {
     navItems: [
       { label: "Overview", icon: LayoutDashboard },
       { label: "Available Deliveries", icon: Package },
+      { label: "Browse Food", icon: Utensils },
+      { label: "Messages", icon: MessageCircle },
       { label: "Navigation", icon: MapPin },
       { label: "Earnings", icon: Wallet },
       { label: "Delivery History", icon: History },
@@ -130,6 +136,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Approve Farmers", icon: Sprout },
       { label: "Verify Riders", icon: Bike },
       { label: "Monitor Orders", icon: Package },
+      { label: "Campus Feed", icon: Megaphone },
       { label: "Analytics", icon: BarChart3 },
       { label: "Disputes", icon: AlertTriangle },
       { label: "Payouts", icon: Wallet },

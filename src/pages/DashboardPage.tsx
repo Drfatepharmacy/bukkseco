@@ -12,6 +12,10 @@ import BrowseFood from "@/components/BrowseFood";
 import GroupBuySection from "@/components/GroupBuySection";
 import OrdersList from "@/components/OrdersList";
 import HealthTipsLive from "@/components/HealthTipsLive";
+import RiderDeliverySystem from "@/components/RiderDeliverySystem";
+import TableReservation from "@/components/TableReservation";
+import ChatSystem from "@/components/ChatSystem";
+import CampusFeed from "@/components/CampusFeed";
 import { dashboardConfigs } from "@/config/dashboardConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -36,19 +40,26 @@ const DashboardPage = () => {
   }));
 
   const renderContent = () => {
-    // Vendor: Manage Menu
+    // Shared: Messages, Campus Feed
+    if (activeNav === "Messages") return <ChatSystem />;
+    if (activeNav === "Campus Feed") return <CampusFeed />;
+
+    // Vendor
     if (role === "vendor" && activeNav === "Manage Menu") return <VendorMenuManager />;
     if (role === "vendor" && activeNav === "Orders") return <OrdersList viewAs="vendor" />;
+    if (role === "vendor" && activeNav === "Reservations") return <TableReservation />;
 
-    // Buyer: Browse Food, My Orders, Group Buy
+    // Buyer
     if (role === "student" && activeNav === "Browse Food") return <BrowseFood />;
     if (role === "student" && activeNav === "My Orders") return <OrdersList viewAs="buyer" />;
     if (role === "student" && activeNav === "Farm Produce") return <GroupBuySection />;
+    if (role === "student" && activeNav === "Reservations") return <TableReservation />;
 
-    // Rider: Orders
-    if (role === "rider" && activeNav === "Available Deliveries") return <OrdersList viewAs="rider" />;
+    // Rider
+    if (role === "rider" && activeNav === "Available Deliveries") return <RiderDeliverySystem />;
+    if (role === "rider" && activeNav === "Browse Food") return <BrowseFood />;
 
-    // Farmer: Upload Produce (reuse vendor menu manager pattern)
+    // Farmer
     if (role === "farmer" && activeNav === "Upload Produce") return <VendorMenuManager />;
 
     // Admin

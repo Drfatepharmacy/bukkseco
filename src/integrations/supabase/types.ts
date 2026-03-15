@@ -14,6 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
+      campus_activities: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          posted_by: string
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          posted_by: string
+          title: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          posted_by?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          room_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          room_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          room_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          type: Database["public"]["Enums"]["chat_room_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          type?: Database["public"]["Enums"]["chat_room_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          type?: Database["public"]["Enums"]["chat_room_type"]
+        }
+        Relationships: []
+      }
+      delivery_assignments: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          order_id: string
+          pickup_lat: number | null
+          pickup_lng: number | null
+          rider_display_id: string | null
+          rider_id: string | null
+          search_radius: number
+          status: Database["public"]["Enums"]["delivery_status"]
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          order_id: string
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          rider_display_id?: string | null
+          rider_id?: string | null
+          search_radius?: number
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          order_id?: string
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          rider_display_id?: string | null
+          rider_id?: string | null
+          search_radius?: number
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_assignments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       farmer_profiles: {
         Row: {
           created_at: string
@@ -318,6 +483,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          booking_fee: number
+          created_at: string
+          id: string
+          notes: string | null
+          party_size: number
+          reservation_date: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          time_slot: string
+          user_id: string
+          vendor_id: string
+        }
+        Insert: {
+          booking_fee?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          party_size?: number
+          reservation_date: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          time_slot: string
+          user_id: string
+          vendor_id: string
+        }
+        Update: {
+          booking_fee?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          party_size?: number
+          reservation_date?: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          time_slot?: string
+          user_id?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -356,28 +560,64 @@ export type Database = {
           },
         ]
       }
+      rider_locations: {
+        Row: {
+          id: string
+          is_available: boolean
+          latitude: number
+          longitude: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_available?: boolean
+          latitude?: number
+          longitude?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_available?: boolean
+          latitude?: number
+          longitude?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rider_profiles: {
         Row: {
+          avg_speed: number | null
           created_at: string
+          display_id: string | null
           id: string
           is_approved: boolean
           license_url: string | null
+          total_deliveries: number | null
           user_id: string
           vehicle_type: string | null
         }
         Insert: {
+          avg_speed?: number | null
           created_at?: string
+          display_id?: string | null
           id?: string
           is_approved?: boolean
           license_url?: string | null
+          total_deliveries?: number | null
           user_id: string
           vehicle_type?: string | null
         }
         Update: {
+          avg_speed?: number | null
           created_at?: string
+          display_id?: string | null
           id?: string
           is_approved?: boolean
           license_url?: string | null
+          total_deliveries?: number | null
           user_id?: string
           vehicle_type?: string | null
         }
@@ -450,9 +690,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_chat_participant: {
+        Args: { _room_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "buyer" | "vendor" | "farmer" | "rider" | "admin"
+      chat_room_type: "direct" | "group"
+      delivery_status:
+        | "searching"
+        | "offered"
+        | "accepted"
+        | "picked_up"
+        | "delivered"
+        | "cancelled"
       group_buy_status: "active" | "completed" | "expired" | "cancelled"
       order_status:
         | "pending"
@@ -462,6 +714,7 @@ export type Database = {
         | "out_for_delivery"
         | "delivered"
         | "cancelled"
+      reservation_status: "pending" | "confirmed" | "cancelled" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -590,6 +843,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["buyer", "vendor", "farmer", "rider", "admin"],
+      chat_room_type: ["direct", "group"],
+      delivery_status: [
+        "searching",
+        "offered",
+        "accepted",
+        "picked_up",
+        "delivered",
+        "cancelled",
+      ],
       group_buy_status: ["active", "completed", "expired", "cancelled"],
       order_status: [
         "pending",
@@ -600,6 +862,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
+      reservation_status: ["pending", "confirmed", "cancelled", "completed"],
     },
   },
 } as const
