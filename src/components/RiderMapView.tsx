@@ -45,7 +45,9 @@ interface RiderLocation {
 
 const RiderMapView = () => {
   const { user } = useAuth();
-  const { latitude, longitude, error: geoError } = useGeolocation();
+  const { position, error: geoError } = useGeolocation(true);
+  const latitude = position?.latitude;
+  const longitude = position?.longitude;
   const [riders, setRiders] = useState<RiderLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [tracking, setTracking] = useState(false);
