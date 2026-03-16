@@ -16,6 +16,8 @@ import RiderDeliverySystem from "@/components/RiderDeliverySystem";
 import TableReservation from "@/components/TableReservation";
 import ChatSystem from "@/components/ChatSystem";
 import CampusFeed from "@/components/CampusFeed";
+import AdvancedAnalytics from "@/components/AdvancedAnalytics";
+import RiderMapView from "@/components/RiderMapView";
 import { dashboardConfigs } from "@/config/dashboardConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -58,6 +60,7 @@ const DashboardPage = () => {
     // Rider
     if (role === "rider" && activeNav === "Available Deliveries") return <RiderDeliverySystem />;
     if (role === "rider" && activeNav === "Browse Food") return <BrowseFood />;
+    if (role === "rider" && activeNav === "Navigation") return <RiderMapView />;
 
     // Farmer
     if (role === "farmer" && activeNav === "Upload Produce") return <VendorMenuManager />;
@@ -67,6 +70,7 @@ const DashboardPage = () => {
     if (role === "admin" && activeNav === "Approve Farmers") return <AdminApprovals filterRole="farmer" />;
     if (role === "admin" && activeNav === "Verify Riders") return <AdminApprovals filterRole="rider" />;
     if (role === "admin" && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
+    if (role === "admin" && activeNav === "Analytics") return <AdvancedAnalytics />;
 
     // Default: Overview
     return (

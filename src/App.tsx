@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import HowItWorksPage from "./pages/HowItWorksPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
+import FounderConsolePage from "./pages/FounderConsolePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,14 @@ const App = () => (
             />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route
+              path="/founder-console"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FounderConsolePage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

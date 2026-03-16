@@ -179,6 +179,39 @@ export type Database = {
           },
         ]
       }
+      event_logs: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       farmer_profiles: {
         Row: {
           created_at: string
@@ -354,6 +387,42 @@ export type Database = {
           rating_count?: number | null
           updated_at?: string
           vendor_id?: string
+        }
+        Relationships: []
+      }
+      message_logs: {
+        Row: {
+          channel: string
+          content: string
+          created_at: string
+          direction: string
+          id: string
+          parsed_data: Json | null
+          phone_number: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          channel?: string
+          content: string
+          created_at?: string
+          direction?: string
+          id?: string
+          parsed_data?: Json | null
+          phone_number?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          content?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          parsed_data?: Json | null
+          phone_number?: string | null
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -620,6 +689,33 @@ export type Database = {
           total_deliveries?: number | null
           user_id?: string
           vehicle_type?: string | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }
