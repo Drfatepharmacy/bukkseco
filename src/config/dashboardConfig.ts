@@ -115,6 +115,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Available Deliveries", icon: Package },
       { label: "Browse Food", icon: Utensils },
       { label: "Messages", icon: MessageCircle },
+      { label: "Support", icon: LifeBuoy },
       { label: "Navigation", icon: MapPin },
       { label: "Earnings", icon: Wallet },
       { label: "Delivery History", icon: History },
