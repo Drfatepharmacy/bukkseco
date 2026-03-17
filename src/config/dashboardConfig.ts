@@ -2,7 +2,7 @@ import {
   LayoutDashboard, ShoppingBag, Truck, Wallet, Star, Clock,
   Package, BarChart3, Settings, Users, CheckCircle, AlertTriangle,
   Utensils, Sprout, MapPin, History, TrendingUp, Bike,
-  MessageCircle, CalendarDays, Megaphone
+  MessageCircle, CalendarDays, Megaphone, LifeBuoy, Ticket
 } from "lucide-react";
 
 const weeklyData = [
@@ -47,6 +47,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Campus Feed", icon: Megaphone },
       { label: "Messages", icon: MessageCircle },
       { label: "Track Delivery", icon: Truck },
+      { label: "Support", icon: LifeBuoy },
       { label: "Wallet", icon: Wallet },
       { label: "Settings", icon: Settings },
     ],
@@ -69,6 +70,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Orders", icon: Package },
       { label: "Reservations", icon: CalendarDays },
       { label: "Messages", icon: MessageCircle },
+      { label: "Support", icon: LifeBuoy },
       { label: "Revenue", icon: TrendingUp },
       { label: "Settings", icon: Settings },
     ],
@@ -90,6 +92,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Upload Produce", icon: Sprout },
       { label: "Manage Stock", icon: Package },
       { label: "Messages", icon: MessageCircle },
+      { label: "Support", icon: LifeBuoy },
       { label: "Delivery Schedule", icon: Truck },
       { label: "Revenue", icon: TrendingUp },
       { label: "Settings", icon: Settings },
@@ -112,6 +115,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Available Deliveries", icon: Package },
       { label: "Browse Food", icon: Utensils },
       { label: "Messages", icon: MessageCircle },
+      { label: "Support", icon: LifeBuoy },
       { label: "Navigation", icon: MapPin },
       { label: "Earnings", icon: Wallet },
       { label: "Delivery History", icon: History },
@@ -138,6 +142,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Monitor Orders", icon: Package },
       { label: "Campus Feed", icon: Megaphone },
       { label: "Analytics", icon: BarChart3 },
+      { label: "Support Tickets", icon: Ticket },
       { label: "Disputes", icon: AlertTriangle },
       { label: "Payouts", icon: Wallet },
       { label: "Settings", icon: Settings },

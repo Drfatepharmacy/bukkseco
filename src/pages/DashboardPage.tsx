@@ -18,6 +18,7 @@ import ChatSystem from "@/components/ChatSystem";
 import CampusFeed from "@/components/CampusFeed";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import RiderMapView from "@/components/RiderMapView";
+import SupportTicketSystem from "@/components/SupportTicketSystem";
 import { dashboardConfigs } from "@/config/dashboardConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,10 @@ const DashboardPage = () => {
     if (role === "admin" && activeNav === "Verify Riders") return <AdminApprovals filterRole="rider" />;
     if (role === "admin" && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
     if (role === "admin" && activeNav === "Analytics") return <AdvancedAnalytics />;
+    if (role === "admin" && activeNav === "Support Tickets") return <SupportTicketSystem viewAs="admin" />;
+
+    // Support tickets for all roles
+    if (activeNav === "Support") return <SupportTicketSystem viewAs="user" />;
 
     // Default: Overview
     return (

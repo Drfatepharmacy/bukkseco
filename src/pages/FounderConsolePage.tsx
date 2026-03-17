@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Users, Key, AlertTriangle, Activity, RefreshCw, Power, UserPlus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Shield, Lock, Users, Key, AlertTriangle, Activity, RefreshCw, Power, UserPlus, Trash2, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import SecurityDashboard from "@/components/SecurityDashboard";
 
 const FounderConsolePage = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const FounderConsolePage = () => {
   const [admins, setAdmins] = useState<any[]>([]);
   const [eventLogs, setEventLogs] = useState<any[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<"admins" | "logs" | "settings" | "lockdown">("admins");
+  const [activeTab, setActiveTab] = useState<"admins" | "logs" | "settings" | "lockdown" | "security">("admins");
   const [loading, setLoading] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
 
@@ -226,6 +227,7 @@ const FounderConsolePage = () => {
   const tabs = [
     { key: "admins" as const, label: "Admin Users", icon: Users },
     { key: "logs" as const, label: "Audit Logs", icon: Activity },
+    { key: "security" as const, label: "Security", icon: ShieldAlert },
     { key: "settings" as const, label: "System Settings", icon: Key },
     { key: "lockdown" as const, label: "Emergency", icon: AlertTriangle },
   ];
@@ -369,6 +371,8 @@ const FounderConsolePage = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === "security" && <SecurityDashboard />}
 
             {activeTab === "lockdown" && (
               <div className="space-y-4">
