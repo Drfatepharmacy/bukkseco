@@ -70,6 +70,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Orders", icon: Package },
       { label: "Reservations", icon: CalendarDays },
       { label: "Messages", icon: MessageCircle },
+      { label: "Support", icon: LifeBuoy },
       { label: "Revenue", icon: TrendingUp },
       { label: "Settings", icon: Settings },
     ],
