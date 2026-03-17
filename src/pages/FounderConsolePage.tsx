@@ -21,7 +21,7 @@ const FounderConsolePage = () => {
   const [admins, setAdmins] = useState<any[]>([]);
   const [eventLogs, setEventLogs] = useState<any[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<"admins" | "logs" | "settings" | "lockdown">("admins");
+  const [activeTab, setActiveTab] = useState<"admins" | "logs" | "settings" | "lockdown" | "security">("admins");
   const [loading, setLoading] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
 
