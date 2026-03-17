@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload, Send } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Footer from "@/components/Footer";
-import SupportButton from "@/components/SupportButton";
 
 const issueCategories = [
   "Order Issue", "Payment Problem", "Delivery Complaint",
@@ -17,13 +18,37 @@ const issueCategories = [
 
 const SupportPage = () => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const [form, setForm] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+
+    if (user) {
+      const { error } = await supabase.from("support_tickets").insert({
+        user_id: user.id,
+        name: form.name || user.user_metadata?.full_name || "User",
+        email: form.email || user.email || "",
+        role: form.role || role || "buyer",
+        category: form.category,
+        subject: form.subject,
+        message: form.message,
+      } as any);
+
+      if (error) {
+        toast.error("Failed to submit ticket. Please try again.");
+        console.error(error);
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const ticketId = `BKS-2026-${String(Math.floor(Math.random() * 9999)).padStart(4, "0")}`;
-    toast.success(`Ticket ${ticketId} created! Check your email for confirmation.`);
+    toast.success(`Ticket ${ticketId} created! We'll get back to you soon.`);
     setForm({});
+    setSubmitting(false);
   };
 
   return (
@@ -78,16 +103,8 @@ const SupportPage = () => {
               <Textarea required rows={5} placeholder="Describe your issue in detail..." value={form.message || ""} onChange={(e) => setForm({ ...form, message: e.target.value })} />
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-sm font-body text-muted-foreground">Screenshot (optional)</Label>
-              <div className="glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                <Upload className="w-5 h-5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground font-body">Click to upload</span>
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full btn-gold text-base py-5">
-              <Send className="w-4 h-4 mr-2" /> Submit Ticket
+            <Button type="submit" disabled={submitting} className="w-full btn-gold text-base py-5">
+              <Send className="w-4 h-4 mr-2" /> {submitting ? "Submitting..." : "Submit Ticket"}
             </Button>
           </form>
         </motion.div>
