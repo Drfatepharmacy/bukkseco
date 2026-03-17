@@ -2,7 +2,7 @@ import {
   LayoutDashboard, ShoppingBag, Truck, Wallet, Star, Clock,
   Package, BarChart3, Settings, Users, CheckCircle, AlertTriangle,
   Utensils, Sprout, MapPin, History, TrendingUp, Bike,
-  MessageCircle, CalendarDays, Megaphone
+  MessageCircle, CalendarDays, Megaphone, LifeBuoy, Ticket
 } from "lucide-react";
 
 const weeklyData = [
