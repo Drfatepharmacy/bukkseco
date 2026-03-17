@@ -372,6 +372,8 @@ const FounderConsolePage = () => {
               </div>
             )}
 
+            {activeTab === "security" && <SecurityDashboard />}
+
             {activeTab === "lockdown" && (
               <div className="space-y-4">
                 <div className={`glass-card p-6 border-2 ${lockdown ? "border-destructive" : "border-border"}`}>
