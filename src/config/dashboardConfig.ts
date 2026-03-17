@@ -92,6 +92,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Upload Produce", icon: Sprout },
       { label: "Manage Stock", icon: Package },
       { label: "Messages", icon: MessageCircle },
+      { label: "Support", icon: LifeBuoy },
       { label: "Delivery Schedule", icon: Truck },
       { label: "Revenue", icon: TrendingUp },
       { label: "Settings", icon: Settings },
