@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Users, Key, AlertTriangle, Activity, RefreshCw, Power, UserPlus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Shield, Lock, Users, Key, AlertTriangle, Activity, RefreshCw, Power, UserPlus, Trash2, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
