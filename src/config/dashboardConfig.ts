@@ -142,6 +142,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Monitor Orders", icon: Package },
       { label: "Campus Feed", icon: Megaphone },
       { label: "Analytics", icon: BarChart3 },
+      { label: "Support Tickets", icon: Ticket },
       { label: "Disputes", icon: AlertTriangle },
       { label: "Payouts", icon: Wallet },
       { label: "Settings", icon: Settings },
