@@ -227,6 +227,7 @@ const FounderConsolePage = () => {
   const tabs = [
     { key: "admins" as const, label: "Admin Users", icon: Users },
     { key: "logs" as const, label: "Audit Logs", icon: Activity },
+    { key: "security" as const, label: "Security", icon: ShieldAlert },
     { key: "settings" as const, label: "System Settings", icon: Key },
     { key: "lockdown" as const, label: "Emergency", icon: AlertTriangle },
   ];
