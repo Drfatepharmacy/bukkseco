@@ -48,7 +48,6 @@ export const dashboardConfigs: Record<string, {
       { label: "Messages", icon: MessageCircle },
       { label: "Track Delivery", icon: Truck },
       { label: "Support", icon: LifeBuoy },
-      { label: "Wallet", icon: Wallet },
       { label: "Settings", icon: Settings },
     ],
     charts: [
