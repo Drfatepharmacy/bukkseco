@@ -45,7 +45,7 @@ const DashboardPage = () => {
 
   const renderContent = () => {
     // Shared: Messages, Campus Feed
-    if (activeNav === "Messages") return <ChatSystem />;
+    if (activeNav === "Messages") return <ChatSystemV2 />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
 
     // Vendor
