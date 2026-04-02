@@ -42,7 +42,7 @@ const ProfileSettings = ({ role }: ProfileSettingsProps) => {
         .select("*")
         .eq("id", user!.id)
         .single();
-      return data;
+      return data as any;
     },
     enabled: !!user,
   });

@@ -154,14 +154,14 @@ const ChatSystemV2 = () => {
 
       const senderIds = [...new Set(data.map(m => m.sender_id))];
       const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", senderIds);
-      const map = Object.fromEntries((profiles || []).map(p => [p.id, p.full_name]));
-      setMessages(data.map(m => ({ ...m, senderName: map[m.sender_id] || "Unknown" })));
+      const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.full_name]));
+      setMessages(data.map((m: any) => ({ ...m, read_at: m.read_at || null, media_url: m.media_url || null, senderName: nameMap[m.sender_id] || "Unknown" })));
 
       // Mark unread messages as read
-      const unread = data.filter(m => m.sender_id !== user.id && !m.read_at);
+      const unread = data.filter((m: any) => m.sender_id !== user.id && !m.read_at);
       if (unread.length > 0) {
         await supabase.from("chat_messages")
-          .update({ read_at: new Date().toISOString() })
+          .update({ read_at: new Date().toISOString() } as any)
           .in("id", unread.map(m => m.id));
       }
     };
