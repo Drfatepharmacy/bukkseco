@@ -809,6 +809,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_presence: {
+        Row: {
+          id: string
+          last_seen: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_seen?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_seen?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
