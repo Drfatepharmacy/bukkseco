@@ -78,6 +78,30 @@ const DashboardPage = () => {
     // Support tickets for all roles
     if (activeNav === "Support") return <SupportTicketSystem viewAs="user" />;
 
+    // Settings for all roles
+    if (activeNav === "Settings") return <ProfileSettings role={role} />;
+
+    // Track Delivery (student) - show rider map
+    if (activeNav === "Track Delivery") return <RiderMapView />;
+
+    // Revenue / Earnings - show analytics
+    if (activeNav === "Revenue" || activeNav === "Earnings") return <AdvancedAnalytics />;
+
+    // Delivery History for riders
+    if (activeNav === "Delivery History") return <OrdersList viewAs="vendor" />;
+
+    // Manage Stock for farmers
+    if (activeNav === "Manage Stock") return <VendorMenuManager />;
+
+    // Delivery Schedule for farmers
+    if (activeNav === "Delivery Schedule") return <RiderDeliverySystem />;
+
+    // Disputes for admin
+    if (activeNav === "Disputes") return <SupportTicketSystem viewAs="admin" />;
+
+    // Payouts for admin
+    if (activeNav === "Payouts") return <AdvancedAnalytics />;
+
     // Default: Overview
     return (
       <>
