@@ -178,7 +178,7 @@ const ChatSystemV2 = () => {
           if (msg.sender_id !== user.id) {
             playSound("chat");
             // Auto-mark as read
-            await supabase.from("chat_messages").update({ read_at: new Date().toISOString() }).eq("id", msg.id);
+            await supabase.from("chat_messages").update({ read_at: new Date().toISOString() } as any).eq("id", msg.id);
           }
           const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", msg.sender_id).single();
           setMessages(prev => [...prev, { ...msg, senderName: profile?.full_name || "Unknown" }]);
