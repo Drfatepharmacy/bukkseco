@@ -14,11 +14,12 @@ import OrdersList from "@/components/OrdersList";
 import HealthTipsLive from "@/components/HealthTipsLive";
 import RiderDeliverySystem from "@/components/RiderDeliverySystem";
 import TableReservation from "@/components/TableReservation";
-import ChatSystem from "@/components/ChatSystem";
+import ChatSystemV2 from "@/components/ChatSystemV2";
 import CampusFeed from "@/components/CampusFeed";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import RiderMapView from "@/components/RiderMapView";
 import SupportTicketSystem from "@/components/SupportTicketSystem";
+import ProfileSettings from "@/components/ProfileSettings";
 import { dashboardConfigs } from "@/config/dashboardConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ const DashboardPage = () => {
 
   const renderContent = () => {
     // Shared: Messages, Campus Feed
-    if (activeNav === "Messages") return <ChatSystem />;
+    if (activeNav === "Messages") return <ChatSystemV2 />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
 
     // Vendor
@@ -76,6 +77,30 @@ const DashboardPage = () => {
 
     // Support tickets for all roles
     if (activeNav === "Support") return <SupportTicketSystem viewAs="user" />;
+
+    // Settings for all roles
+    if (activeNav === "Settings") return <ProfileSettings role={role} />;
+
+    // Track Delivery (student) - show rider map
+    if (activeNav === "Track Delivery") return <RiderMapView />;
+
+    // Revenue / Earnings - show analytics
+    if (activeNav === "Revenue" || activeNav === "Earnings") return <AdvancedAnalytics />;
+
+    // Delivery History for riders
+    if (activeNav === "Delivery History") return <OrdersList viewAs="vendor" />;
+
+    // Manage Stock for farmers
+    if (activeNav === "Manage Stock") return <VendorMenuManager />;
+
+    // Delivery Schedule for farmers
+    if (activeNav === "Delivery Schedule") return <RiderDeliverySystem />;
+
+    // Disputes for admin
+    if (activeNav === "Disputes") return <SupportTicketSystem viewAs="admin" />;
+
+    // Payouts for admin
+    if (activeNav === "Payouts") return <AdvancedAnalytics />;
 
     // Default: Overview
     return (

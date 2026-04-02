@@ -350,24 +350,75 @@ const FounderConsolePage = () => {
             )}
 
             {activeTab === "settings" && (
-              <div className="glass-card p-5">
-                <h3 className="font-display text-sm font-semibold text-foreground mb-4">System Settings</h3>
-                <div className="space-y-3">
-                  {systemSettings
-                    .filter((s) => s.key !== "founder_passphrase" && s.key !== "platform_lockdown")
-                    .map((setting) => (
-                      <div key={setting.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-body font-semibold text-foreground">{setting.key}</p>
-                          <p className="text-[10px] text-muted-foreground font-body">{setting.description}</p>
+              <div className="space-y-4">
+                {/* Logo Upload */}
+                <div className="glass-card p-5">
+                  <h3 className="font-display text-sm font-semibold text-foreground mb-3">Platform Logo</h3>
+                  <p className="text-xs text-muted-foreground font-body mb-3">Upload a logo for the platform. It will appear in sidebars and headers.</p>
+                  <div className="flex items-center gap-4">
+                    {(() => {
+                      const logoSetting = systemSettings.find(s => s.key === "platform_logo");
+                      const logoUrl = logoSetting?.value && typeof logoSetting.value === "string" ? JSON.parse(logoSetting.value) : null;
+                      return logoUrl ? (
+                        <img src={logoUrl} alt="Platform Logo" className="h-12 w-auto rounded-lg border border-border" />
+                      ) : (
+                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground font-body">No logo</div>
+                      );
+                    })()}
+                    <div>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        className="bg-muted/50 font-body text-xs"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !user) return;
+                          try {
+                            const ext = file.name.split(".").pop();
+                            const path = `platform/logo_${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage.from("food-images").upload(path, file);
+                            if (upErr) throw upErr;
+                            const url = supabase.storage.from("food-images").getPublicUrl(path).data.publicUrl;
+
+                            // Upsert setting
+                            const existing = systemSettings.find(s => s.key === "platform_logo");
+                            if (existing) {
+                              await supabase.from("system_settings").update({ value: JSON.stringify(url) as any, updated_by: user.id }).eq("key", "platform_logo");
+                            } else {
+                              await supabase.from("system_settings").insert({ key: "platform_logo", value: JSON.stringify(url) as any, description: "Platform logo URL", updated_by: user.id });
+                            }
+                            await logEvent("logo_updated", "Platform logo updated");
+                            toast.success("Logo uploaded!");
+                            loadData();
+                          } catch (err: any) {
+                            toast.error(err.message || "Upload failed");
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Other Settings */}
+                <div className="glass-card p-5">
+                  <h3 className="font-display text-sm font-semibold text-foreground mb-4">System Settings</h3>
+                  <div className="space-y-3">
+                    {systemSettings
+                      .filter((s) => s.key !== "founder_passphrase" && s.key !== "platform_lockdown" && s.key !== "platform_logo")
+                      .map((setting) => (
+                        <div key={setting.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-body font-semibold text-foreground">{setting.key}</p>
+                            <p className="text-[10px] text-muted-foreground font-body">{setting.description}</p>
+                          </div>
+                          <Input
+                            defaultValue={JSON.stringify(setting.value)}
+                            onBlur={(e) => updateSetting(setting.key, e.target.value)}
+                            className="w-40 text-xs font-body bg-background"
+                          />
                         </div>
-                        <Input
-                          defaultValue={JSON.stringify(setting.value)}
-                          onBlur={(e) => updateSetting(setting.key, e.target.value)}
-                          className="w-40 text-xs font-body bg-background"
-                        />
-                      </div>
-                    ))}
+                      ))}
+                  </div>
                 </div>
               </div>
             )}

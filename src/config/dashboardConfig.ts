@@ -34,9 +34,9 @@ export const dashboardConfigs: Record<string, {
     label: "Student Dashboard",
     stats: [
       { title: "Orders This Month", value: 23, icon: ShoppingBag, trend: 12, color: "primary" },
-      { title: "Wallet Balance", value: 15400, prefix: "₦", icon: Wallet, color: "success" },
       { title: "Active Deliveries", value: 2, icon: Truck, trend: 5, color: "secondary" },
       { title: "Average Rating", value: 4, suffix: ".8", icon: Star, color: "primary" },
+      { title: "Savings", value: 3200, prefix: "₦", icon: TrendingUp, color: "success" },
     ],
     navItems: [
       { label: "Overview", icon: LayoutDashboard },
@@ -48,7 +48,6 @@ export const dashboardConfigs: Record<string, {
       { label: "Messages", icon: MessageCircle },
       { label: "Track Delivery", icon: Truck },
       { label: "Support", icon: LifeBuoy },
-      { label: "Wallet", icon: Wallet },
       { label: "Settings", icon: Settings },
     ],
     charts: [
