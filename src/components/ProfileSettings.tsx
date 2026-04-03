@@ -129,7 +129,7 @@ const ProfileSettings = ({ role }: ProfileSettingsProps) => {
         city: form.city.trim(),
         avatar_url: avatarUrl,
         banner_url: bannerUrl,
-      }).eq("id", user!.id);
+      } as any).eq("id", user!.id);
       if (error) throw error;
 
       if (role === "vendor" && vendorProfile) {
