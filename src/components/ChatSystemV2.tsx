@@ -220,7 +220,7 @@ const ChatSystemV2 = () => {
         sender_id: user.id,
         content: newMessage.trim() || (mediaFile ? "📎 Attachment" : ""),
         media_url: mediaUrl,
-      });
+      } as any);
       setNewMessage("");
       setMediaFile(null);
     } catch (err: any) {
