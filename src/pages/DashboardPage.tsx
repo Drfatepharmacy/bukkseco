@@ -18,6 +18,7 @@ import ChatSystemV2 from "@/components/ChatSystemV2";
 import CampusFeed from "@/components/CampusFeed";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import RiderMapView from "@/components/RiderMapView";
+import LiveRiderTracking from "@/components/LiveRiderTracking";
 import SupportTicketSystem from "@/components/SupportTicketSystem";
 import ProfileSettings from "@/components/ProfileSettings";
 import { dashboardConfigs } from "@/config/dashboardConfig";
