@@ -38,6 +38,11 @@ const App = () => (
             />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/live-tracking" element={
+              <ProtectedRoute>
+                <LiveTrackingPage />
+              </ProtectedRoute>
+            } />
             <Route
               path="/founder-console"
               element={

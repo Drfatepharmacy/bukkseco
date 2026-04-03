@@ -83,7 +83,7 @@ const DashboardPage = () => {
     if (activeNav === "Settings") return <ProfileSettings role={role} />;
 
     // Track Delivery (student) - show rider map
-    if (activeNav === "Track Delivery") return <RiderMapView />;
+    if (activeNav === "Track Delivery") return <LiveRiderTracking />;
 
     // Revenue / Earnings - show analytics
     if (activeNav === "Revenue" || activeNav === "Earnings") return <AdvancedAnalytics />;
