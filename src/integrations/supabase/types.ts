@@ -351,6 +351,33 @@ export type Database = {
         }
         Relationships: []
       }
+      landmarks: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           category: string | null
@@ -561,6 +588,48 @@ export type Database = {
         }
         Relationships: []
       }
+      registered_members: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          other_details: Json | null
+          phone: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          other_details?: Json | null
+          phone?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          other_details?: Json | null
+          phone?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       reservations: {
         Row: {
           booking_fee: number
@@ -642,6 +711,7 @@ export type Database = {
         Row: {
           id: string
           is_available: boolean
+          landmark_passed: string | null
           latitude: number
           longitude: number
           updated_at: string
@@ -650,6 +720,7 @@ export type Database = {
         Insert: {
           id?: string
           is_available?: boolean
+          landmark_passed?: string | null
           latitude?: number
           longitude?: number
           updated_at?: string
@@ -658,6 +729,7 @@ export type Database = {
         Update: {
           id?: string
           is_available?: boolean
+          landmark_passed?: string | null
           latitude?: number
           longitude?: number
           updated_at?: string
