@@ -13,6 +13,7 @@ import HowItWorksPage from "./pages/HowItWorksPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
 import FounderConsolePage from "./pages/FounderConsolePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import LiveTrackingPage from "./pages/LiveTrackingPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,11 @@ const App = () => (
             />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/live-tracking" element={
+              <ProtectedRoute>
+                <LiveTrackingPage />
+              </ProtectedRoute>
+            } />
             <Route
               path="/founder-console"
               element={

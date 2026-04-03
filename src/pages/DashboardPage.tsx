@@ -18,6 +18,7 @@ import ChatSystemV2 from "@/components/ChatSystemV2";
 import CampusFeed from "@/components/CampusFeed";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import RiderMapView from "@/components/RiderMapView";
+import LiveRiderTracking from "@/components/LiveRiderTracking";
 import SupportTicketSystem from "@/components/SupportTicketSystem";
 import ProfileSettings from "@/components/ProfileSettings";
 import { dashboardConfigs } from "@/config/dashboardConfig";
@@ -62,7 +63,7 @@ const DashboardPage = () => {
     // Rider
     if (role === "rider" && activeNav === "Available Deliveries") return <RiderDeliverySystem />;
     if (role === "rider" && activeNav === "Browse Food") return <BrowseFood />;
-    if (role === "rider" && activeNav === "Navigation") return <RiderMapView />;
+    if (role === "rider" && activeNav === "Navigation") return <LiveRiderTracking />;
 
     // Farmer
     if (role === "farmer" && activeNav === "Upload Produce") return <VendorMenuManager />;
@@ -82,7 +83,7 @@ const DashboardPage = () => {
     if (activeNav === "Settings") return <ProfileSettings role={role} />;
 
     // Track Delivery (student) - show rider map
-    if (activeNav === "Track Delivery") return <RiderMapView />;
+    if (activeNav === "Track Delivery") return <LiveRiderTracking />;
 
     // Revenue / Earnings - show analytics
     if (activeNav === "Revenue" || activeNav === "Earnings") return <AdvancedAnalytics />;
