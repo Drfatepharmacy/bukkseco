@@ -33,15 +33,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch role
+      // Fetch role - use .limit(1) instead of .single() to handle multiple roles
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .single();
+        .limit(1);
 
-      if (roleData) {
-        setRole(roleData.role as UserRole);
+      if (roleData && roleData.length > 0) {
+        setRole(roleData[0].role as UserRole);
       }
 
       // Fetch approval status
