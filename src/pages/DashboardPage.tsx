@@ -63,7 +63,7 @@ const DashboardPage = () => {
     // Rider
     if (role === "rider" && activeNav === "Available Deliveries") return <RiderDeliverySystem />;
     if (role === "rider" && activeNav === "Browse Food") return <BrowseFood />;
-    if (role === "rider" && activeNav === "Navigation") return <RiderMapView />;
+    if (role === "rider" && activeNav === "Navigation") return <LiveRiderTracking />;
 
     // Farmer
     if (role === "farmer" && activeNav === "Upload Produce") return <VendorMenuManager />;
