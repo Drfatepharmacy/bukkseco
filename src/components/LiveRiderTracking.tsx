@@ -74,7 +74,7 @@ const LiveRiderTracking = () => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [3.3792, 6.5244],
+      center: [5.6100, 6.4000],
       zoom: 14,
       attributionControl: false,
     });
