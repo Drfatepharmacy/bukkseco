@@ -231,12 +231,30 @@ const LiveRiderTracking = () => {
 
     if (!showLandmarks) return;
 
+    const iconMap: Record<string, { emoji: string; bg: string; border: string }> = {
+      gate: { emoji: "🚪", bg: "#f59e0b", border: "#fbbf24" },
+      academic: { emoji: "🎓", bg: "#3b82f6", border: "#60a5fa" },
+      hospital: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
+      library: { emoji: "📚", bg: "#8b5cf6", border: "#a78bfa" },
+      recreation: { emoji: "⚽", bg: "#10b981", border: "#34d399" },
+      hostel: { emoji: "🛏️", bg: "#6366f1", border: "#818cf8" },
+      admin: { emoji: "🏛️", bg: "#64748b", border: "#94a3b8" },
+      bank: { emoji: "🏦", bg: "#0ea5e9", border: "#38bdf8" },
+      food: { emoji: "🍽️", bg: "#f97316", border: "#fb923c" },
+      technology: { emoji: "💻", bg: "#14b8a6", border: "#2dd4bf" },
+      worship: { emoji: "⛪", bg: "#a855f7", border: "#c084fc" },
+      clinic: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
+      landmark: { emoji: "📍", bg: "#ec4899", border: "#f472b6" },
+    };
+
     landmarks.forEach((l) => {
+      const icon = iconMap[l.type] || { emoji: "📍", bg: "#8b5cf6", border: "#c4b5fd" };
       const el = document.createElement("div");
-      el.innerHTML = `<div style="width:10px;height:10px;background:#8b5cf6;border:2px solid #c4b5fd;border-radius:2px;"></div>`;
+      el.style.cssText = "cursor:pointer;";
+      el.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:${icon.bg};border:2px solid ${icon.border};border-radius:50%;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${icon.emoji}</div>`;
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([l.longitude, l.latitude])
-        .setPopup(new mapboxgl.Popup({ offset: 10 }).setHTML(`<div style="color:#000;"><strong>${l.name}</strong><br/><em>${l.type}</em></div>`))
+        .setPopup(new mapboxgl.Popup({ offset: 18 }).setHTML(`<div style="color:#000;"><strong>${icon.emoji} ${l.name}</strong><br/><em style="color:#666;">${l.type}</em></div>`))
         .addTo(map.current!);
       landmarkMarkers.current.push(marker);
     });
