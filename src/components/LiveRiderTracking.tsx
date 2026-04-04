@@ -65,6 +65,7 @@ const LiveRiderTracking = () => {
   const [landmarksPassed, setLandmarksPassed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [eta, setEta] = useState<string | null>(null);
+  const [showLegend, setShowLegend] = useState(false);
 
   // Init map
   useEffect(() => {
@@ -439,7 +440,65 @@ const LiveRiderTracking = () => {
         >
           <Layers className="w-3.5 h-3.5" />
         </Button>
+        <Button
+          variant={showLegend ? "default" : "secondary"}
+          size="sm"
+          onClick={() => setShowLegend(!showLegend)}
+          className="text-xs"
+        >
+          <MapPin className="w-3.5 h-3.5" />
+        </Button>
       </div>
+
+      {/* Legend panel */}
+      {showLegend && (
+        <div className="absolute bottom-16 left-4 z-10 bg-background/95 backdrop-blur-lg border border-border/50 rounded-xl p-4 w-56">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-bold text-foreground">Legend</h4>
+            <Button variant="ghost" size="sm" onClick={() => setShowLegend(false)}>
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {[
+              { emoji: "🚪", label: "Gate", bg: "#f59e0b" },
+              { emoji: "🎓", label: "Academic", bg: "#3b82f6" },
+              { emoji: "🏥", label: "Hospital / Clinic", bg: "#ef4444" },
+              { emoji: "📚", label: "Library", bg: "#8b5cf6" },
+              { emoji: "⚽", label: "Recreation", bg: "#10b981" },
+              { emoji: "🛏️", label: "Hostel", bg: "#6366f1" },
+              { emoji: "🏛️", label: "Admin Building", bg: "#64748b" },
+              { emoji: "🏦", label: "Bank", bg: "#0ea5e9" },
+              { emoji: "🍽️", label: "Food / Cafeteria", bg: "#f97316" },
+              { emoji: "💻", label: "Technology", bg: "#14b8a6" },
+              { emoji: "⛪", label: "Place of Worship", bg: "#a855f7" },
+              { emoji: "📍", label: "Other Landmark", bg: "#ec4899" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2 text-xs">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0"
+                  style={{ background: item.bg, border: `2px solid ${item.bg}44` }}
+                >
+                  {item.emoji}
+                </div>
+                <span className="text-foreground">{item.label}</span>
+              </div>
+            ))}
+            <div className="border-t border-border/50 pt-2 mt-2 space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 relative">
+                  <div className="w-3 h-3 bg-[#f59e0b] border-2 border-white rounded-full" />
+                </div>
+                <span className="text-foreground">Active Rider</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-3 h-3 bg-[#10b981] border-2 border-white rounded-full shrink-0 ml-1.5" />
+                <span className="text-foreground">Member</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Selected member detail panel */}
       {selectedMember && (
