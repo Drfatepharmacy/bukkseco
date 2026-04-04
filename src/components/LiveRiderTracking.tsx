@@ -65,6 +65,7 @@ const LiveRiderTracking = () => {
   const [landmarksPassed, setLandmarksPassed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [eta, setEta] = useState<string | null>(null);
+  const [showLegend, setShowLegend] = useState(false);
 
   // Init map
   useEffect(() => {
