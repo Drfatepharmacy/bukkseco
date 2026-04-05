@@ -137,47 +137,6 @@ const GroupBuySection = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
-  const handleJoinWithPayment = (gb: any) => {
-    if (!user) { toast.error("Please log in"); return; }
-
-    const config = {
-      reference: `GBP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      email: user.email || "",
-      amount: Math.round(Number(gb.group_price) * 100),
-      publicKey: PAYSTACK_PUBLIC_KEY,
-      currency: "NGN" as const,
-    };
-
-    const PaystackPopup = (window as any).PaystackPop;
-    // Use inline approach for dynamic amounts
-    const initPaystack = usePaystackPayment(config);
-    
-    initPaystack({
-      onSuccess: async (response: any) => {
-        try {
-          const { error } = await supabase.from("group_buy_participants").insert({
-            group_buy_id: gb.id,
-            user_id: user.id,
-          });
-          if (error) throw error;
-          
-          // Verify payment
-          await supabase.functions.invoke("verify-payment", {
-            body: { reference: response.reference },
-          });
-
-          toast.success("Joined & paid! 🤝");
-          queryClient.invalidateQueries({ queryKey: ["group-buys"] });
-          queryClient.invalidateQueries({ queryKey: ["my-participations"] });
-        } catch (err: any) {
-          toast.error(err.message);
-        }
-      },
-      onClose: () => toast.info("Payment cancelled"),
-    });
-  };
-
-  const joinGroupBuy = useMutation({
     mutationFn: async (groupBuyId: string) => {
       if (!user) throw new Error("Please log in");
       const { error } = await supabase.from("group_buy_participants").insert({
@@ -310,14 +269,7 @@ const GroupBuySection = () => {
                 </div>
 
                 {user && !hasJoined && gb.creator_id !== user.id && (
-                  <Button
-                    onClick={() => joinGroupBuy.mutate(gb.id)}
-                    disabled={joinGroupBuy.isPending}
-                    className="w-full mt-4 btn-gold"
-                    size="sm"
-                  >
-                    Join Group Buy <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <JoinGroupBuyButton gb={gb} user={user} queryClient={queryClient} />
                 )}
                 {hasJoined && (
                   <div className="mt-4 text-center text-sm text-success font-body font-semibold">✓ You've joined this group buy</div>
