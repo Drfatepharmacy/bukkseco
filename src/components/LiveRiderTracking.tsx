@@ -66,6 +66,7 @@ const LiveRiderTracking = () => {
   const [loading, setLoading] = useState(true);
   const [eta, setEta] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
 
   // Init map
   useEffect(() => {
@@ -233,6 +234,7 @@ const LiveRiderTracking = () => {
     if (!showLandmarks) return;
 
     const iconMap: Record<string, { emoji: string; bg: string; border: string }> = {
+
       gate: { emoji: "🚪", bg: "#f59e0b", border: "#fbbf24" },
       academic: { emoji: "🎓", bg: "#3b82f6", border: "#60a5fa" },
       hospital: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
@@ -249,6 +251,7 @@ const LiveRiderTracking = () => {
     };
 
     landmarks.forEach((l) => {
+      if (hiddenTypes.has(l.type)) return;
       const icon = iconMap[l.type] || { emoji: "📍", bg: "#8b5cf6", border: "#c4b5fd" };
       const el = document.createElement("div");
       el.style.cssText = "cursor:pointer;";
@@ -259,7 +262,7 @@ const LiveRiderTracking = () => {
         .addTo(map.current!);
       landmarkMarkers.current.push(marker);
     });
-  }, [landmarks, showLandmarks]);
+  }, [landmarks, showLandmarks, hiddenTypes]);
 
   // Directions
   const fetchDirections = useCallback(async (dest: Member) => {
