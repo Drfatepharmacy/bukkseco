@@ -510,6 +510,8 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string
+          payment_reference: string | null
+          payment_status: string | null
           rider_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -524,6 +526,8 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string
+          payment_reference?: string | null
+          payment_status?: string | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -538,6 +542,8 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string
+          payment_reference?: string | null
+          payment_status?: string | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number

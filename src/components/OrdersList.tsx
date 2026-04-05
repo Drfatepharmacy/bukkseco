@@ -116,9 +116,20 @@ const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
             )}
 
             <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
-              <span className="text-xs text-muted-foreground font-body">
-                {order.delivery_address && `📍 ${order.delivery_address}`}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-body">
+                  {order.delivery_address && `📍 ${order.delivery_address}`}
+                </span>
+                {order.payment_status && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-body font-semibold ${
+                    order.payment_status === "paid" ? "bg-success/10 text-success" :
+                    order.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
+                    "bg-muted text-muted-foreground"
+                  }`}>
+                    {order.payment_status === "paid" ? "💳 Paid" : order.payment_status === "failed" ? "❌ Failed" : "⏳ Pending"}
+                  </span>
+                )}
+              </div>
               <span className="font-display font-bold text-foreground">₦{Number(order.total_amount).toLocaleString()}</span>
             </div>
           </motion.div>
