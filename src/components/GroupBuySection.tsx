@@ -57,6 +57,53 @@ const CountdownDisplay = ({ expiresAt }: { expiresAt: string }) => {
   );
 };
 
+const JoinGroupBuyButton = ({ gb, user, queryClient }: { gb: any; user: any; queryClient: any }) => {
+  const [isJoining, setIsJoining] = useState(false);
+  const config = {
+    reference: `GBP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    email: user.email || "",
+    amount: Math.round(Number(gb.group_price) * 100),
+    publicKey: PAYSTACK_PUBLIC_KEY,
+    currency: "NGN" as const,
+  };
+
+  const initializePayment = usePaystackPayment(config);
+
+  const handleClick = () => {
+    initializePayment({
+      onSuccess: async (response: any) => {
+        setIsJoining(true);
+        try {
+          const { error } = await supabase.from("group_buy_participants").insert({
+            group_buy_id: gb.id,
+            user_id: user.id,
+          });
+          if (error) throw error;
+
+          await supabase.functions.invoke("verify-payment", {
+            body: { reference: response.reference },
+          });
+
+          toast.success("Joined & paid! 🤝");
+          queryClient.invalidateQueries({ queryKey: ["group-buys"] });
+          queryClient.invalidateQueries({ queryKey: ["my-participations"] });
+        } catch (err: any) {
+          toast.error(err.message);
+        } finally {
+          setIsJoining(false);
+        }
+      },
+      onClose: () => toast.info("Payment cancelled"),
+    });
+  };
+
+  return (
+    <Button onClick={handleClick} disabled={isJoining} className="w-full mt-4 btn-gold" size="sm">
+      {isJoining ? "Processing..." : <>Pay & Join <ArrowRight className="w-4 h-4 ml-2" /></>}
+    </Button>
+  );
+};
+
 const GroupBuySection = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
