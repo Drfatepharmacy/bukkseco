@@ -137,22 +137,6 @@ const GroupBuySection = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
-    mutationFn: async (groupBuyId: string) => {
-      if (!user) throw new Error("Please log in");
-      const { error } = await supabase.from("group_buy_participants").insert({
-        group_buy_id: groupBuyId,
-        user_id: user.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("You joined the group buy! 🤝");
-      queryClient.invalidateQueries({ queryKey: ["group-buys"] });
-      queryClient.invalidateQueries({ queryKey: ["my-participations"] });
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
