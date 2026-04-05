@@ -1,17 +1,51 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, ShoppingCart, Search, Filter, Plus, Minus, X } from "lucide-react";
+import { Star, ShoppingCart, Search, Plus, Minus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { usePaystackPayment } from "react-paystack";
+
+const PAYSTACK_PUBLIC_KEY = "pk_live_efc7f697d85e3814c0eac669cb42221df8cb1ba1";
 
 interface CartItem {
   meal: any;
   quantity: number;
 }
+
+const PaystackCheckoutButton = ({ 
+  amount, email, onSuccess, onClose, disabled, label 
+}: { 
+  amount: number; email: string; onSuccess: (ref: string) => void; onClose: () => void; disabled: boolean; label: string;
+}) => {
+  const config = {
+    reference: `BKS-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    email,
+    amount: Math.round(amount * 100), // kobo
+    publicKey: PAYSTACK_PUBLIC_KEY,
+    currency: "NGN",
+  };
+
+  const initializePayment = usePaystackPayment(config);
+
+  return (
+    <Button
+      onClick={() => {
+        initializePayment({
+          onSuccess: (response: any) => onSuccess(response.reference),
+          onClose,
+        });
+      }}
+      disabled={disabled}
+      className="w-full mt-6 btn-gold py-5"
+    >
+      {label}
+    </Button>
+  );
+};
 
 const BrowseFood = () => {
   const { user } = useAuth();
@@ -20,6 +54,7 @@ const BrowseFood = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [orderAddress, setOrderAddress] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { data: meals = [], isLoading } = useQuery({
     queryKey: ["browse-meals"],
@@ -70,13 +105,13 @@ const BrowseFood = () => {
 
   const cartTotal = cart.reduce((sum, c) => sum + Number(c.meal.price) * c.quantity, 0);
   const deliveryFee = cart.length > 0 ? 500 : 0;
+  const grandTotal = cartTotal + deliveryFee;
 
-  const placeOrder = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("Please log in");
-      if (cart.length === 0) throw new Error("Cart is empty");
-      if (!orderAddress.trim()) throw new Error("Please enter delivery address");
+  const handlePaymentSuccess = async (reference: string) => {
+    if (!user || cart.length === 0 || !orderAddress.trim()) return;
+    setIsProcessing(true);
 
+    try {
       // Group cart items by vendor
       const vendorGroups: Record<string, CartItem[]> = {};
       cart.forEach(item => {
@@ -87,7 +122,7 @@ const BrowseFood = () => {
 
       for (const [vendorId, items] of Object.entries(vendorGroups)) {
         const totalAmount = items.reduce((s, c) => s + Number(c.meal.price) * c.quantity, 0);
-        
+
         const { data: order, error: orderErr } = await supabase
           .from("orders")
           .insert({
@@ -96,6 +131,8 @@ const BrowseFood = () => {
             total_amount: totalAmount + deliveryFee,
             delivery_address: orderAddress.trim(),
             delivery_fee: deliveryFee,
+            payment_reference: reference,
+            payment_status: "verifying",
           })
           .select()
           .single();
@@ -111,16 +148,31 @@ const BrowseFood = () => {
 
         const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
         if (itemsErr) throw itemsErr;
+
+        // Verify payment server-side
+        const { error: verifyErr } = await supabase.functions.invoke("verify-payment", {
+          body: { reference, order_id: order.id },
+        });
+
+        if (verifyErr) {
+          console.error("Payment verification error:", verifyErr);
+        }
       }
-    },
-    onSuccess: () => {
-      toast.success("Order placed successfully! 🎉");
+
+      toast.success("Order placed & payment verified! 🎉");
       setCart([]);
       setShowCart(false);
       setOrderAddress("");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save order");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaymentClose = () => {
+    toast.info("Payment cancelled");
+  };
 
   return (
     <div>
@@ -228,17 +280,24 @@ const BrowseFood = () => {
                 </div>
                 <div className="flex justify-between font-display font-bold text-foreground border-t border-border pt-2">
                   <span>Total</span>
-                  <span>₦{(cartTotal + deliveryFee).toLocaleString()}</span>
+                  <span>₦{grandTotal.toLocaleString()}</span>
                 </div>
               </div>
 
-              <Button
-                onClick={() => placeOrder.mutate()}
-                disabled={placeOrder.isPending}
-                className="w-full mt-6 btn-gold py-5"
-              >
-                {placeOrder.isPending ? "Placing Order..." : "Place Order"}
-              </Button>
+              {user && cart.length > 0 && orderAddress.trim() ? (
+                <PaystackCheckoutButton
+                  amount={grandTotal}
+                  email={user.email || ""}
+                  onSuccess={handlePaymentSuccess}
+                  onClose={handlePaymentClose}
+                  disabled={isProcessing}
+                  label={isProcessing ? "Processing..." : `Pay ₦${grandTotal.toLocaleString()}`}
+                />
+              ) : (
+                <Button disabled className="w-full mt-6 py-5">
+                  {!user ? "Log in to order" : !orderAddress.trim() ? "Enter delivery address" : "Add items to cart"}
+                </Button>
+              )}
             </motion.div>
           </motion.div>
         )}

@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePaystackPayment } from "react-paystack";
+
+const PAYSTACK_PUBLIC_KEY = "pk_live_efc7f697d85e3814c0eac669cb42221df8cb1ba1";
 
 const useCountdown = (targetDate: string) => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0, expired: false });
@@ -133,6 +136,46 @@ const GroupBuySection = () => {
     },
     onError: (err: any) => toast.error(err.message),
   });
+
+  const handleJoinWithPayment = (gb: any) => {
+    if (!user) { toast.error("Please log in"); return; }
+
+    const config = {
+      reference: `GBP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      email: user.email || "",
+      amount: Math.round(Number(gb.group_price) * 100),
+      publicKey: PAYSTACK_PUBLIC_KEY,
+      currency: "NGN" as const,
+    };
+
+    const PaystackPopup = (window as any).PaystackPop;
+    // Use inline approach for dynamic amounts
+    const initPaystack = usePaystackPayment(config);
+    
+    initPaystack({
+      onSuccess: async (response: any) => {
+        try {
+          const { error } = await supabase.from("group_buy_participants").insert({
+            group_buy_id: gb.id,
+            user_id: user.id,
+          });
+          if (error) throw error;
+          
+          // Verify payment
+          await supabase.functions.invoke("verify-payment", {
+            body: { reference: response.reference },
+          });
+
+          toast.success("Joined & paid! 🤝");
+          queryClient.invalidateQueries({ queryKey: ["group-buys"] });
+          queryClient.invalidateQueries({ queryKey: ["my-participations"] });
+        } catch (err: any) {
+          toast.error(err.message);
+        }
+      },
+      onClose: () => toast.info("Payment cancelled"),
+    });
+  };
 
   const joinGroupBuy = useMutation({
     mutationFn: async (groupBuyId: string) => {
