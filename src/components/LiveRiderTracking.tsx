@@ -66,6 +66,7 @@ const LiveRiderTracking = () => {
   const [loading, setLoading] = useState(true);
   const [eta, setEta] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
 
   // Init map
   useEffect(() => {
@@ -233,6 +234,7 @@ const LiveRiderTracking = () => {
     if (!showLandmarks) return;
 
     const iconMap: Record<string, { emoji: string; bg: string; border: string }> = {
+
       gate: { emoji: "🚪", bg: "#f59e0b", border: "#fbbf24" },
       academic: { emoji: "🎓", bg: "#3b82f6", border: "#60a5fa" },
       hospital: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
@@ -249,6 +251,7 @@ const LiveRiderTracking = () => {
     };
 
     landmarks.forEach((l) => {
+      if (hiddenTypes.has(l.type)) return;
       const icon = iconMap[l.type] || { emoji: "📍", bg: "#8b5cf6", border: "#c4b5fd" };
       const el = document.createElement("div");
       el.style.cssText = "cursor:pointer;";
@@ -259,7 +262,7 @@ const LiveRiderTracking = () => {
         .addTo(map.current!);
       landmarkMarkers.current.push(marker);
     });
-  }, [landmarks, showLandmarks]);
+  }, [landmarks, showLandmarks, hiddenTypes]);
 
   // Directions
   const fetchDirections = useCallback(async (dest: Member) => {
@@ -461,20 +464,33 @@ const LiveRiderTracking = () => {
           </div>
           <div className="space-y-2">
             {[
-              { emoji: "🚪", label: "Gate", bg: "#f59e0b" },
-              { emoji: "🎓", label: "Academic", bg: "#3b82f6" },
-              { emoji: "🏥", label: "Hospital / Clinic", bg: "#ef4444" },
-              { emoji: "📚", label: "Library", bg: "#8b5cf6" },
-              { emoji: "⚽", label: "Recreation", bg: "#10b981" },
-              { emoji: "🛏️", label: "Hostel", bg: "#6366f1" },
-              { emoji: "🏛️", label: "Admin Building", bg: "#64748b" },
-              { emoji: "🏦", label: "Bank", bg: "#0ea5e9" },
-              { emoji: "🍽️", label: "Food / Cafeteria", bg: "#f97316" },
-              { emoji: "💻", label: "Technology", bg: "#14b8a6" },
-              { emoji: "⛪", label: "Place of Worship", bg: "#a855f7" },
-              { emoji: "📍", label: "Other Landmark", bg: "#ec4899" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-xs">
+              { emoji: "🚪", label: "Gate", type: "gate", bg: "#f59e0b" },
+              { emoji: "🎓", label: "Academic", type: "academic", bg: "#3b82f6" },
+              { emoji: "🏥", label: "Hospital / Clinic", type: "hospital", bg: "#ef4444" },
+              { emoji: "📚", label: "Library", type: "library", bg: "#8b5cf6" },
+              { emoji: "⚽", label: "Recreation", type: "recreation", bg: "#10b981" },
+              { emoji: "🛏️", label: "Hostel", type: "hostel", bg: "#6366f1" },
+              { emoji: "🏛️", label: "Admin Building", type: "admin", bg: "#64748b" },
+              { emoji: "🏦", label: "Bank", type: "bank", bg: "#0ea5e9" },
+              { emoji: "🍽️", label: "Food / Cafeteria", type: "food", bg: "#f97316" },
+              { emoji: "💻", label: "Technology", type: "technology", bg: "#14b8a6" },
+              { emoji: "⛪", label: "Place of Worship", type: "worship", bg: "#a855f7" },
+              { emoji: "📍", label: "Other Landmark", type: "landmark", bg: "#ec4899" },
+            ].map((item) => {
+              const isHidden = hiddenTypes.has(item.type);
+              return (
+              <button
+                key={item.label}
+                className={`flex items-center gap-2 text-xs w-full rounded-md px-1 py-0.5 transition-opacity ${isHidden ? "opacity-30" : "opacity-100 hover:bg-muted/50"}`}
+                onClick={() => {
+                  setHiddenTypes(prev => {
+                    const next = new Set(prev);
+                    if (next.has(item.type)) next.delete(item.type);
+                    else next.add(item.type);
+                    return next;
+                  });
+                }}
+              >
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0"
                   style={{ background: item.bg, border: `2px solid ${item.bg}44` }}
@@ -482,8 +498,12 @@ const LiveRiderTracking = () => {
                   {item.emoji}
                 </div>
                 <span className="text-foreground">{item.label}</span>
-              </div>
-            ))}
+                <span className="ml-auto text-[10px] text-muted-foreground">
+                  {landmarks.filter(l => l.type === item.type).length}
+                </span>
+              </button>
+              );
+            })}
             <div className="border-t border-border/50 pt-2 mt-2 space-y-2">
               <div className="flex items-center gap-2 text-xs">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 relative">
