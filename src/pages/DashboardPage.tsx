@@ -17,6 +17,7 @@ import TableReservation from "@/components/TableReservation";
 import ChatSystemV2 from "@/components/ChatSystemV2";
 import CampusFeed from "@/components/CampusFeed";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import RiderMapView from "@/components/RiderMapView";
 import LiveRiderTracking from "@/components/LiveRiderTracking";
 import SupportTicketSystem from "@/components/SupportTicketSystem";
@@ -73,7 +74,7 @@ const DashboardPage = () => {
     if (role === "admin" && activeNav === "Approve Farmers") return <AdminApprovals filterRole="farmer" />;
     if (role === "admin" && activeNav === "Verify Riders") return <AdminApprovals filterRole="rider" />;
     if (role === "admin" && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
-    if (role === "admin" && activeNav === "Analytics") return <AdvancedAnalytics />;
+    if (role === "admin" && activeNav === "Analytics") return <AnalyticsDashboard />;
     if (role === "admin" && activeNav === "Support Tickets") return <SupportTicketSystem viewAs="admin" />;
 
     // Support tickets for all roles
