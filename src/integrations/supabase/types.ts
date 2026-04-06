@@ -390,6 +390,7 @@ export type Database = {
           price: number
           rating_avg: number | null
           rating_count: number | null
+          stock_quantity: number | null
           updated_at: string
           vendor_id: string
         }
@@ -404,6 +405,7 @@ export type Database = {
           price: number
           rating_avg?: number | null
           rating_count?: number | null
+          stock_quantity?: number | null
           updated_at?: string
           vendor_id: string
         }
@@ -418,6 +420,7 @@ export type Database = {
           price?: number
           rating_avg?: number | null
           rating_count?: number | null
+          stock_quantity?: number | null
           updated_at?: string
           vendor_id?: string
         }

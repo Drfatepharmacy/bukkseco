@@ -79,6 +79,10 @@ const BrowseFood = () => {
   });
 
   const addToCart = (meal: any) => {
+    if (meal.stock_quantity !== null && meal.stock_quantity !== undefined && meal.stock_quantity <= 0) {
+      toast.error("This item is out of stock");
+      return;
+    }
     setCart(prev => {
       const existing = prev.find(c => c.meal.id === meal.id);
       if (existing) {
@@ -328,15 +332,26 @@ const BrowseFood = () => {
               <div className="p-4">
                 <h3 className="font-display font-semibold text-foreground">{meal.name}</h3>
                 <p className="text-xs text-muted-foreground font-body mt-1 line-clamp-2">{meal.description}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <Star className="w-3.5 h-3.5 text-primary fill-primary" />
                   <span className="text-xs font-body text-muted-foreground">{Number(meal.rating_avg).toFixed(1)} ({meal.rating_count})</span>
                   {meal.category && <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-body">{meal.category}</span>}
+                  {meal.stock_quantity !== null && meal.stock_quantity !== undefined && meal.stock_quantity <= 10 && meal.stock_quantity > 0 && (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-body">{meal.stock_quantity} left</span>
+                  )}
+                  {meal.stock_quantity !== null && meal.stock_quantity !== undefined && meal.stock_quantity <= 0 && (
+                    <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full font-body">Sold out</span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between mt-3">
                   <span className="font-display text-lg font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
-                  <Button onClick={() => addToCart(meal)} size="sm" className="btn-gold">
-                    <Plus className="w-4 h-4 mr-1" /> Add
+                  <Button 
+                    onClick={() => addToCart(meal)} 
+                    size="sm" 
+                    className="btn-gold"
+                    disabled={meal.stock_quantity !== null && meal.stock_quantity !== undefined && meal.stock_quantity <= 0}
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> {meal.stock_quantity !== null && meal.stock_quantity !== undefined && meal.stock_quantity <= 0 ? "Sold out" : "Add"}
                   </Button>
                 </div>
               </div>
