@@ -14,6 +14,7 @@ import SupportPage from "./pages/SupportPage.tsx";
 import FounderConsolePage from "./pages/FounderConsolePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import LiveTrackingPage from "./pages/LiveTrackingPage.tsx";
+import VendorStorefrontPage from "./pages/VendorStorefrontPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
