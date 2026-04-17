@@ -287,9 +287,12 @@ const ChatSystemV2 = () => {
 
   const ReadReceipt = ({ msg }: { msg: ChatMessage }) => {
     if (msg.sender_id !== user?.id) return null;
-    return msg.read_at
-      ? <CheckCheck className="w-3 h-3 text-primary inline" />
-      : <Check className="w-3 h-3 text-muted-foreground inline" />;
+    const isRead = !!msg.read_at;
+    return (
+      <CheckCheck
+        className={`w-3 h-3 inline ${isRead ? "text-purple-600" : "text-gray-400"}`}
+      />
+    );
   };
 
   const formatTime = (ts: string) => {
@@ -364,7 +367,7 @@ const ChatSystemV2 = () => {
                   <p className="font-body text-sm">No conversations yet</p>
                   <p className="font-body text-xs">Start a new chat!</p>
                 </div>
-              ) : rooms.map(room => (
+              ) : rooms.map((room, index) => (
                 <motion.div
                   key={room.id}
                   className="flex items-center gap-3 p-4 hover:bg-muted/50 cursor-pointer border-b border-border/50 transition-colors"
@@ -373,9 +376,9 @@ const ChatSystemV2 = () => {
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10">
-                      {room.otherUser?.avatar_url && <AvatarImage src={room.otherUser.avatar_url} />}
+                      {room.otherUser?.avatar_url && index >= 3 && <AvatarImage src={room.otherUser.avatar_url} />}
                       <AvatarFallback className="bg-primary/10 text-primary font-display text-sm">
-                        {room.otherUser?.full_name?.charAt(0) || "?"}
+                        {index < 3 ? "?" : (room.otherUser?.full_name?.charAt(0) || "?")}
                       </AvatarFallback>
                     </Avatar>
                     <span className="absolute -bottom-0.5 -right-0.5"><PresenceDot userId={room.otherUser?.id} /></span>
@@ -383,7 +386,9 @@ const ChatSystemV2 = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-display text-sm font-semibold text-foreground truncate">
-                        {room.otherUser?.full_name || "User"}
+                        {index < 3
+                          ? `User-${room.otherUser?.id.slice(0, 6) || "XXXXXX"}`
+                          : (room.otherUser?.full_name || "User")}
                       </p>
                       {room.lastMessageTime && (
                         <span className="text-[10px] text-muted-foreground font-body">{formatTime(room.lastMessageTime)}</span>
