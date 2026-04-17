@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { usePaystackPayment } from "react-paystack";
+import { calculateDeliveryFee } from "@/lib/pricing/delivery";
 
 const PAYSTACK_PUBLIC_KEY = "pk_live_efc7f697d85e3814c0eac669cb42221df8cb1ba1";
 
@@ -61,7 +62,12 @@ const BrowseFood = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meals")
-        .select("*")
+        .select(`
+          *,
+          vendor:vendor_id (
+            delivery_multiplier
+          )
+        `)
         .eq("is_available", true)
         .order("rating_avg", { ascending: false });
       if (error) throw error;
@@ -108,7 +114,13 @@ const BrowseFood = () => {
   };
 
   const cartTotal = cart.reduce((sum, c) => sum + Number(c.meal.price) * c.quantity, 0);
-  const deliveryFee = cart.length > 0 ? 500 : 0;
+
+  // Calculate delivery fee based on the first item's vendor for simplicity in this UI
+  // Real implementation might handle multiple vendors differently
+  const deliveryFee = cart.length > 0
+    ? calculateDeliveryFee(cartTotal, cart[0].meal.vendor?.delivery_multiplier || 1.0)
+    : 0;
+
   const grandTotal = cartTotal + deliveryFee;
 
   const handlePaymentSuccess = async (reference: string) => {
