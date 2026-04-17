@@ -32,6 +32,7 @@ const DashboardPage = () => {
   const { signOut, user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("Overview");
+  const [selectedChatUserId, setSelectedChatUserId] = useState<string | undefined>();
 
   const config = dashboardConfigs[role || ""];
   if (!config) {
@@ -47,8 +48,20 @@ const DashboardPage = () => {
 
   const renderContent = () => {
     // Shared: Messages, Campus Feed
-    if (activeNav === "Messages") return <ChatSystemV2 />;
-    if (activeNav === "Campus Feed") return <CampusFeed />;
+    if (activeNav === "Messages") return (
+      <ChatSystemV2
+        initialUserId={selectedChatUserId}
+        onChatInitiated={() => setSelectedChatUserId(undefined)}
+      />
+    );
+    if (activeNav === "Campus Feed") return (
+      <CampusFeed
+        onSelectUser={(userId) => {
+          setSelectedChatUserId(userId);
+          setActiveNav("Messages");
+        }}
+      />
+    );
 
     // Vendor
     if (role === "vendor" && activeNav === "Manage Menu") return <VendorMenuManager />;

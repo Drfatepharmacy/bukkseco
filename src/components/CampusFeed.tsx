@@ -25,7 +25,11 @@ interface Activity {
   posterName?: string;
 }
 
-const CampusFeed = () => {
+interface CampusFeedProps {
+  onSelectUser?: (userId: string) => void;
+}
+
+const CampusFeed = ({ onSelectUser }: CampusFeedProps) => {
   const { user } = useAuth();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -171,14 +175,22 @@ const CampusFeed = () => {
               <Card className="border-border hover:shadow-sm transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <Avatar className="w-9 h-9 mt-0.5">
+                    <Avatar
+                      className={`w-9 h-9 mt-0.5 ${onSelectUser ? "cursor-pointer" : ""}`}
+                      onClick={() => onSelectUser?.(activity.posted_by)}
+                    >
                       <AvatarFallback className="bg-primary/10 text-primary font-display text-xs">
                         {activity.posterName?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-display text-sm font-semibold text-foreground">{activity.posterName}</span>
+                        <span
+                          className={`font-display text-sm font-semibold text-foreground ${onSelectUser ? "cursor-pointer hover:underline" : ""}`}
+                          onClick={() => onSelectUser?.(activity.posted_by)}
+                        >
+                          {activity.posterName}
+                        </span>
                         <Badge className={`text-[10px] ${catColors[activity.category] || catColors.general}`}>
                           {activity.category}
                         </Badge>

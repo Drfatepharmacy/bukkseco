@@ -39,7 +39,12 @@ interface UserPresence {
   last_seen: string;
 }
 
-const ChatSystemV2 = () => {
+interface ChatSystemV2Props {
+  initialUserId?: string;
+  onChatInitiated?: () => void;
+}
+
+const ChatSystemV2 = ({ initialUserId, onChatInitiated }: ChatSystemV2Props) => {
   const { user } = useAuth();
   const { playSound } = useSoundNotification();
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
@@ -141,6 +146,15 @@ const ChatSystemV2 = () => {
     };
     fetchRooms();
   }, [user]);
+
+  // Handle initial user initiation
+  useEffect(() => {
+    if (initialUserId && user && rooms.length > 0) {
+      startChat(initialUserId).then(() => {
+        if (onChatInitiated) onChatInitiated();
+      });
+    }
+  }, [initialUserId, user, rooms.length]);
 
   // Fetch messages & subscribe
   useEffect(() => {
@@ -311,100 +325,100 @@ const ChatSystemV2 = () => {
 
   // Room list
   if (!activeRoom) {
+    const filteredRooms = rooms.filter(r =>
+      r.otherUser?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.otherUser?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
       <Card className="border-border h-[600px] flex flex-col">
         <CardHeader className="border-b border-border pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="font-display text-base flex items-center gap-2">
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="font-display text-base flex items-center gap-2 shrink-0">
               <MessageCircle className="w-5 h-5 text-primary" /> Messages
             </CardTitle>
-            <Button size="sm" onClick={() => setShowNewChat(!showNewChat)}>
-              {showNewChat ? "Cancel" : "New Chat"}
-            </Button>
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search chats or users..."
+                value={searchQuery}
+                onChange={(e) => searchUsers(e.target.value)}
+                className="font-body pl-10 h-9 text-sm"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden">
-          {showNewChat ? (
-            <div className="p-4 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => searchUsers(e.target.value)}
-                  className="font-body pl-10"
-                />
-              </div>
-              <ScrollArea className="h-[450px]">
+          <ScrollArea className="h-full">
+            {searchQuery.length >= 2 && searchResults.length > 0 && (
+              <div className="border-b border-border">
+                <div className="px-4 py-2 bg-muted/30 text-[10px] uppercase font-bold tracking-widest text-muted-foreground">New People</div>
                 {searchResults.map(u => (
-                  <motion.div
+                  <div
                     key={u.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-lg cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-4 hover:bg-muted/50 cursor-pointer transition-colors"
                     onClick={() => startChat(u.id)}
                   >
+                    <Avatar className="w-10 h-10">
+                      {u.avatar_url && <AvatarImage src={u.avatar_url} />}
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-display">
+                        {u.full_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-display text-sm font-semibold text-foreground">{u.full_name}</p>
+                      <p className="text-xs text-muted-foreground font-body">{u.email}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {filteredRooms.length === 0 && searchResults.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground mt-20">
+                <MessageCircle className="w-10 h-10 mb-2 opacity-40" />
+                <p className="font-body text-sm">No conversations found</p>
+                {searchQuery && <p className="font-body text-xs mt-1">Try a different search term</p>}
+              </div>
+            ) : (
+              <>
+                {filteredRooms.length > 0 && searchQuery && (
+                  <div className="px-4 py-2 bg-muted/30 text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Conversations</div>
+                )}
+                {filteredRooms.map((room, index) => (
+                  <motion.div
+                    key={room.id}
+                    className="flex items-center gap-3 p-4 hover:bg-muted/50 cursor-pointer border-b border-border/50 transition-colors"
+                    onClick={() => setActiveRoom(room)}
+                    whileHover={{ x: 4 }}
+                  >
                     <div className="relative">
-                      <Avatar className="w-9 h-9">
-                        {u.avatar_url && <AvatarImage src={u.avatar_url} />}
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-display">
-                          {u.full_name?.charAt(0) || "?"}
+                      <Avatar className="w-10 h-10">
+                        {room.otherUser?.avatar_url && index >= 3 && <AvatarImage src={room.otherUser.avatar_url} />}
+                        <AvatarFallback className="bg-primary/10 text-primary font-display text-sm">
+                          {index < 3 ? "?" : (room.otherUser?.full_name?.charAt(0) || "?")}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="absolute -bottom-0.5 -right-0.5"><PresenceDot userId={u.id} /></span>
+                      <span className="absolute -bottom-0.5 -right-0.5"><PresenceDot userId={room.otherUser?.id} /></span>
                     </div>
-                    <div>
-                      <p className="font-display text-sm font-medium text-foreground">{u.full_name}</p>
-                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="font-display text-sm font-semibold text-foreground truncate">
+                          {index < 3
+                            ? `User-${room.otherUser?.id.slice(0, 6) || "XXXXXX"}`
+                            : (room.otherUser?.full_name || "User")}
+                        </p>
+                        {room.lastMessageTime && (
+                          <span className="text-[10px] text-muted-foreground font-body">{formatTime(room.lastMessageTime)}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate font-body">{room.lastMessage || "No messages yet"}</p>
                     </div>
                   </motion.div>
                 ))}
-                {searchQuery.length >= 2 && searchResults.length === 0 && (
-                  <p className="text-center text-sm text-muted-foreground py-8 font-body">No users found</p>
-                )}
-              </ScrollArea>
-            </div>
-          ) : (
-            <ScrollArea className="h-full">
-              {rooms.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground">
-                  <MessageCircle className="w-10 h-10 mb-2 opacity-40" />
-                  <p className="font-body text-sm">No conversations yet</p>
-                  <p className="font-body text-xs">Start a new chat!</p>
-                </div>
-              ) : rooms.map((room, index) => (
-                <motion.div
-                  key={room.id}
-                  className="flex items-center gap-3 p-4 hover:bg-muted/50 cursor-pointer border-b border-border/50 transition-colors"
-                  onClick={() => setActiveRoom(room)}
-                  whileHover={{ x: 4 }}
-                >
-                  <div className="relative">
-                    <Avatar className="w-10 h-10">
-                      {room.otherUser?.avatar_url && index >= 3 && <AvatarImage src={room.otherUser.avatar_url} />}
-                      <AvatarFallback className="bg-primary/10 text-primary font-display text-sm">
-                        {index < 3 ? "?" : (room.otherUser?.full_name?.charAt(0) || "?")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="absolute -bottom-0.5 -right-0.5"><PresenceDot userId={room.otherUser?.id} /></span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="font-display text-sm font-semibold text-foreground truncate">
-                        {index < 3
-                          ? `User-${room.otherUser?.id.slice(0, 6) || "XXXXXX"}`
-                          : (room.otherUser?.full_name || "User")}
-                      </p>
-                      {room.lastMessageTime && (
-                        <span className="text-[10px] text-muted-foreground font-body">{formatTime(room.lastMessageTime)}</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate font-body">{room.lastMessage || "No messages yet"}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </ScrollArea>
-          )}
+              </>
+            )}
+          </ScrollArea>
         </CardContent>
       </Card>
     );
