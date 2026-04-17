@@ -1,10 +1,11 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus, Upload, Trash2, Edit2, Eye, EyeOff } from "lucide-react";
+import { Plus, Upload, Trash2, Edit2, Eye, EyeOff, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +16,16 @@ const VendorMenuManager = () => {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", price: "", category: "", image: null as File | null });
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    image: null as File | null,
+    group_buy_enabled: false,
+    group_buy_min_qty: "5",
+    group_buy_discount_percent: "10",
+  });
   const [uploading, setUploading] = useState(false);
 
   const { data: meals = [], isLoading } = useQuery({
@@ -55,6 +65,9 @@ const VendorMenuManager = () => {
         description: form.description.trim(),
         price: parseFloat(form.price),
         category: form.category.trim(),
+        group_buy_enabled: form.group_buy_enabled,
+        group_buy_min_qty: parseInt(form.group_buy_min_qty),
+        group_buy_discount_percent: parseFloat(form.group_buy_discount_percent),
         ...(imageUrl ? { image_url: imageUrl } : {}),
       };
 
@@ -98,7 +111,16 @@ const VendorMenuManager = () => {
   });
 
   const resetForm = () => {
-    setForm({ name: "", description: "", price: "", category: "", image: null });
+    setForm({
+      name: "",
+      description: "",
+      price: "",
+      category: "",
+      image: null,
+      group_buy_enabled: false,
+      group_buy_min_qty: "5",
+      group_buy_discount_percent: "10",
+    });
     setEditingId(null);
     setShowForm(false);
   };
@@ -110,6 +132,9 @@ const VendorMenuManager = () => {
       price: String(meal.price),
       category: meal.category || "",
       image: null,
+      group_buy_enabled: !!meal.group_buy_enabled,
+      group_buy_min_qty: String(meal.group_buy_min_qty || 5),
+      group_buy_discount_percent: String(meal.group_buy_discount_percent || 10),
     });
     setEditingId(meal.id);
     setShowForm(true);
@@ -161,6 +186,45 @@ const VendorMenuManager = () => {
               <Label className="text-sm font-body text-muted-foreground">Description</Label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe this meal..." rows={3} className="bg-muted/50 font-body" />
             </div>
+
+            <div className="md:col-span-2 space-y-4 border-t border-border pt-4 mt-2">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-semibold font-display">Group Buy</Label>
+                  <p className="text-xs text-muted-foreground font-body">Enable students to buy this item together for a discount</p>
+                </div>
+                <Switch
+                  checked={form.group_buy_enabled}
+                  onCheckedChange={(checked) => setForm({ ...form, group_buy_enabled: checked })}
+                />
+              </div>
+
+              {form.group_buy_enabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-body text-muted-foreground">Minimum Quantity for Discount</Label>
+                    <Input
+                      type="number"
+                      min="2"
+                      value={form.group_buy_min_qty}
+                      onChange={(e) => setForm({ ...form, group_buy_min_qty: e.target.value })}
+                      className="bg-muted/50 font-body h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-body text-muted-foreground">Discount Percentage (%)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="90"
+                      value={form.group_buy_discount_percent}
+                      onChange={(e) => setForm({ ...form, group_buy_discount_percent: e.target.value })}
+                      className="bg-muted/50 font-body h-9"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex gap-3 mt-4">
             <Button type="submit" disabled={uploading} className="btn-gold">
@@ -190,9 +254,16 @@ const VendorMenuManager = () => {
                     <h3 className="font-display font-semibold text-foreground">{meal.name}</h3>
                     <p className="text-xs text-muted-foreground font-body">{meal.category}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-body ${meal.is_available ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                    {meal.is_available ? "Available" : "Unavailable"}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-xs px-2 py-1 rounded-full font-body ${meal.is_available ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                      {meal.is_available ? "Available" : "Unavailable"}
+                    </span>
+                    {meal.group_buy_enabled && (
+                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-body flex items-center gap-1">
+                        <Users className="w-2.5 h-2.5" /> Group Buy ON
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground font-body mt-2 line-clamp-2">{meal.description}</p>
                 <div className="flex items-center justify-between mt-3">

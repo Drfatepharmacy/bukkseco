@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const VendorStorefrontPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [cart, setCart] = useState<Record<string, number>>({});
+  const { cart, addToCart: addItemToCart, cartTotal } = useCart();
   const [category, setCategory] = useState("All");
 
   const { data: vendor, isLoading: vendorLoading } = useQuery({
@@ -63,19 +64,12 @@ const VendorStorefrontPage = () => {
 
   const addToCart = (mealId: string) => {
     const meal = meals.find(m => m.id === mealId);
-    if (meal && meal.stock_quantity !== null && meal.stock_quantity <= 0) {
-      toast.error("This item is out of stock");
-      return;
+    if (meal) {
+      addItemToCart(meal);
     }
-    setCart(prev => ({ ...prev, [mealId]: (prev[mealId] || 0) + 1 }));
-    toast.success("Added to cart");
   };
 
-  const cartCount = Object.values(cart).reduce((s, v) => s + v, 0);
-  const cartTotal = Object.entries(cart).reduce((s, [id, qty]) => {
-    const meal = meals.find(m => m.id === id);
-    return s + (meal ? Number(meal.price) * qty : 0);
-  }, 0);
+  const cartCount = cart.reduce((s, item) => s + item.quantity, 0);
 
   if (vendorLoading) {
     return (
@@ -152,7 +146,12 @@ const VendorStorefrontPage = () => {
                   <div className="p-3">
                     <p className="font-display font-semibold text-sm text-foreground truncate">{meal.name}</p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm font-display font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-display font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
+                        {meal.group_buy_enabled && (
+                          <span className="text-[10px] text-primary font-bold">Group Buy Available</span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 text-primary fill-primary" />
                         <span className="text-xs font-body text-muted-foreground">{Number(meal.rating_avg ?? 0).toFixed(1)}</span>
@@ -216,7 +215,12 @@ const VendorStorefrontPage = () => {
                     )}
                   </div>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="font-display text-lg font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
+                    <div className="flex flex-col">
+                      <span className="font-display text-lg font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
+                      {meal.group_buy_enabled && (
+                        <span className="text-[10px] text-primary font-bold">Group Buy Available</span>
+                      )}
+                    </div>
                     <Button onClick={() => addToCart(meal.id)} size="sm" className="btn-gold" disabled={outOfStock}>
                       <Plus className="w-4 h-4 mr-1" /> {outOfStock ? "Sold out" : "Add"}
                     </Button>

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
@@ -33,7 +34,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <CartProvider>
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/signup/:role" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -120,9 +122,10 @@ const App = () => (
               }
             />
 
-            <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </CartProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

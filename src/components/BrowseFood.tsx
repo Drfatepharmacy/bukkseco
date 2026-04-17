@@ -1,21 +1,19 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, ShoppingCart, Search, Plus, Minus, X } from "lucide-react";
+import { Star, ShoppingCart, Search, Plus, Minus, X, Users, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { usePaystackPayment } from "react-paystack";
 import { calculateDeliveryFee } from "@/lib/pricing/delivery";
+import { getCartItemPrice, isGroupBuyActive } from "@/lib/pricing/groupBuy";
 
 const PAYSTACK_PUBLIC_KEY = "pk_live_efc7f697d85e3814c0eac669cb42221df8cb1ba1";
 
-interface CartItem {
-  meal: any;
-  quantity: number;
-}
 
 const PaystackCheckoutButton = ({ 
   amount, email, onSuccess, onClose, disabled, label 
@@ -50,9 +48,9 @@ const PaystackCheckoutButton = ({
 
 const BrowseFood = () => {
   const { user } = useAuth();
+  const { cart, addToCart, updateQuantity, removeFromCart, toggleGroupBuy, clearCart, cartTotal, discountTotal, grandTotal: cartGrandTotal } = useCart();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [orderAddress, setOrderAddress] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -84,44 +82,14 @@ const BrowseFood = () => {
     return matchesSearch && matchesCat;
   });
 
-  const addToCart = (meal: any) => {
-    if (meal.stock_quantity !== null && meal.stock_quantity !== undefined && meal.stock_quantity <= 0) {
-      toast.error("This item is out of stock");
-      return;
-    }
-    setCart(prev => {
-      const existing = prev.find(c => c.meal.id === meal.id);
-      if (existing) {
-        return prev.map(c => c.meal.id === meal.id ? { ...c, quantity: c.quantity + 1 } : c);
-      }
-      return [...prev, { meal, quantity: 1 }];
-    });
-    toast.success(`${meal.name} added to cart`);
-  };
-
-  const updateQuantity = (mealId: string, delta: number) => {
-    setCart(prev => prev.map(c => {
-      if (c.meal.id === mealId) {
-        const newQty = c.quantity + delta;
-        return newQty <= 0 ? c : { ...c, quantity: newQty };
-      }
-      return c;
-    }).filter(c => c.quantity > 0));
-  };
-
-  const removeFromCart = (mealId: string) => {
-    setCart(prev => prev.filter(c => c.meal.id !== mealId));
-  };
-
-  const cartTotal = cart.reduce((sum, c) => sum + Number(c.meal.price) * c.quantity, 0);
-
   // Calculate delivery fee based on the first item's vendor for simplicity in this UI
   // Real implementation might handle multiple vendors differently
+  // Fee is calculated AFTER group discount per requirements
   const deliveryFee = cart.length > 0
-    ? calculateDeliveryFee(cartTotal, cart[0].meal.vendor?.delivery_multiplier || 1.0)
+    ? calculateDeliveryFee(cartGrandTotal, cart[0].meal.vendor?.delivery_multiplier || 1.0)
     : 0;
 
-  const grandTotal = cartTotal + deliveryFee;
+  const finalGrandTotal = cartGrandTotal + deliveryFee;
 
   const handlePaymentSuccess = async (reference: string) => {
     if (!user || cart.length === 0 || !orderAddress.trim()) return;
@@ -129,7 +97,7 @@ const BrowseFood = () => {
 
     try {
       // Group cart items by vendor
-      const vendorGroups: Record<string, CartItem[]> = {};
+      const vendorGroups: Record<string, any[]> = {};
       cart.forEach(item => {
         const vid = item.meal.vendor_id;
         if (!vendorGroups[vid]) vendorGroups[vid] = [];
@@ -137,30 +105,37 @@ const BrowseFood = () => {
       });
 
       for (const [vendorId, items] of Object.entries(vendorGroups)) {
-        const totalAmount = items.reduce((s, c) => s + Number(c.meal.price) * c.quantity, 0);
+        const vendorSubtotal = items.reduce((sum, c) => {
+          const price = getCartItemPrice(c);
+          return sum + price * c.quantity;
+        }, 0);
 
         const { data: order, error: orderErr } = await supabase
           .from("orders")
           .insert({
             buyer_id: user.id,
             vendor_id: vendorId,
-            total_amount: totalAmount + deliveryFee,
+            total_amount: vendorSubtotal + deliveryFee,
             delivery_address: orderAddress.trim(),
             delivery_fee: deliveryFee,
             payment_reference: reference,
             payment_status: "verifying",
+            subtotal: vendorSubtotal,
           })
           .select()
           .single();
 
         if (orderErr) throw orderErr;
 
-        const orderItems = items.map(c => ({
-          order_id: order.id,
-          meal_id: c.meal.id,
-          quantity: c.quantity,
-          unit_price: Number(c.meal.price),
-        }));
+        const orderItems = items.map(c => {
+          const unitPrice = getCartItemPrice(c);
+          return {
+            order_id: order.id,
+            meal_id: c.meal.id,
+            quantity: c.quantity,
+            unit_price: unitPrice,
+          };
+        });
 
         const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
         if (itemsErr) throw itemsErr;
@@ -176,7 +151,7 @@ const BrowseFood = () => {
       }
 
       toast.success("Order placed & payment verified! 🎉");
-      setCart([]);
+      clearCart();
       setShowCart(false);
       setOrderAddress("");
     } catch (err: any) {
@@ -254,26 +229,80 @@ const BrowseFood = () => {
                 <button onClick={() => setShowCart(false)}><X className="w-5 h-5" /></button>
               </div>
 
-              {cart.map(item => (
-                <div key={item.meal.id} className="flex items-center gap-3 py-3 border-b border-border">
-                  <div className="flex-1">
-                    <p className="font-display font-semibold text-foreground text-sm">{item.meal.name}</p>
-                    <p className="text-xs text-muted-foreground font-body">₦{Number(item.meal.price).toLocaleString()}</p>
+              {cart.map(item => {
+                const isEligible = item.meal.group_buy_enabled;
+                const minQty = item.meal.group_buy_min_qty || 5;
+                const thresholdMet = item.quantity >= minQty;
+                const isActive = isGroupBuyActive(item);
+
+                return (
+                  <div key={item.meal.id} className="py-4 border-b border-border space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <p className="font-display font-semibold text-foreground text-sm">{item.meal.name}</p>
+                        <p className="text-xs text-muted-foreground font-body">
+                          {isActive ? (
+                            <span className="flex items-center gap-1.5">
+                              <span className="line-through">₦{Number(item.meal.price).toLocaleString()}</span>
+                              <span className="text-success font-bold">₦{Math.round(getCartItemPrice(item)).toLocaleString()}</span>
+                            </span>
+                          ) : (
+                            <span>₦{Number(item.meal.price).toLocaleString()}</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => updateQuantity(item.meal.id, -1)} className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="font-body text-sm w-6 text-center">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.meal.id, 1)} className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <button onClick={() => removeFromCart(item.meal.id)}>
+                        <X className="w-4 h-4 text-destructive" />
+                      </button>
+                    </div>
+
+                    {isEligible && (
+                      <div className={`p-3 rounded-xl border transition-all ${item.groupBuySelected ? 'bg-primary/5 border-primary/20' : 'bg-muted/30 border-transparent'}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Users className={`w-4 h-4 ${item.groupBuySelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                            <span className="text-xs font-semibold font-body">Group Buy Discount</span>
+                          </div>
+                          <button
+                            onClick={() => toggleGroupBuy(item.meal.id)}
+                            className={`text-[10px] px-2 py-1 rounded-md font-bold transition-colors ${
+                              item.groupBuySelected
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {item.groupBuySelected ? 'ENABLED' : 'ACTIVATE'}
+                          </button>
+                        </div>
+
+                        {item.groupBuySelected && (
+                          <div className="mt-2 space-y-1">
+                            {thresholdMet ? (
+                              <div className="flex items-center gap-1.5 text-success">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span className="text-[10px] font-bold">Group Buy Active! Saving {item.meal.group_buy_discount_percent || 10}%</span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-muted-foreground font-body">
+                                Add <span className="font-bold text-primary">{minQty - item.quantity} more</span> to unlock discount
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => updateQuantity(item.meal.id, -1)} className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="font-body text-sm w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.meal.id, 1)} className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <button onClick={() => removeFromCart(item.meal.id)}>
-                    <X className="w-4 h-4 text-destructive" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
 
               <div className="mt-4 space-y-1.5">
                 <label className="text-sm font-body text-muted-foreground">Delivery Address</label>
@@ -290,24 +319,30 @@ const BrowseFood = () => {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="text-foreground">₦{cartTotal.toLocaleString()}</span>
                 </div>
+                {discountTotal > 0 && (
+                  <div className="flex justify-between text-sm font-body text-success">
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> Group Savings</span>
+                    <span>-₦{discountTotal.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm font-body">
                   <span className="text-muted-foreground">Delivery</span>
                   <span className="text-foreground">₦{deliveryFee.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between font-display font-bold text-foreground border-t border-border pt-2">
                   <span>Total</span>
-                  <span>₦{grandTotal.toLocaleString()}</span>
+                  <span>₦{finalGrandTotal.toLocaleString()}</span>
                 </div>
               </div>
 
               {user && cart.length > 0 && orderAddress.trim() ? (
                 <PaystackCheckoutButton
-                  amount={grandTotal}
+                  amount={finalGrandTotal}
                   email={user.email || ""}
                   onSuccess={handlePaymentSuccess}
                   onClose={handlePaymentClose}
                   disabled={isProcessing}
-                  label={isProcessing ? "Processing..." : `Pay ₦${grandTotal.toLocaleString()}`}
+                  label={isProcessing ? "Processing..." : `Pay ₦${finalGrandTotal.toLocaleString()}`}
                 />
               ) : (
                 <Button disabled className="w-full mt-6 py-5">

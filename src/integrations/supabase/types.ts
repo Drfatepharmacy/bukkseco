@@ -396,6 +396,9 @@ export type Database = {
           unit: string | null
           requires_takeaway: boolean | null
           takeaway_unit_type: string | null
+          group_buy_enabled: boolean | null
+          group_buy_min_qty: number | null
+          group_buy_discount_percent: number | null
         }
         Insert: {
           category?: string | null
@@ -414,6 +417,9 @@ export type Database = {
           unit?: string | null
           requires_takeaway?: boolean | null
           takeaway_unit_type?: string | null
+          group_buy_enabled?: boolean | null
+          group_buy_min_qty?: number | null
+          group_buy_discount_percent?: number | null
         }
         Update: {
           category?: string | null
@@ -432,6 +438,9 @@ export type Database = {
           unit?: string | null
           requires_takeaway?: boolean | null
           takeaway_unit_type?: string | null
+          group_buy_enabled?: boolean | null
+          group_buy_min_qty?: number | null
+          group_buy_discount_percent?: number | null
         }
         Relationships: []
       }
