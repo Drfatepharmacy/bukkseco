@@ -15,6 +15,14 @@ import FounderConsolePage from "./pages/FounderConsolePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import LiveTrackingPage from "./pages/LiveTrackingPage.tsx";
 import VendorStorefrontPage from "./pages/VendorStorefrontPage.tsx";
+import VendorDashboard from "./pages/vendor/VendorDashboard.tsx";
+import VendorMenu from "./pages/vendor/VendorMenu.tsx";
+import VendorOrders from "./pages/vendor/VendorOrders.tsx";
+import VendorSales from "./pages/vendor/VendorSales.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminVendors from "./pages/admin/AdminVendors.tsx";
+import AdminOrders from "./pages/admin/AdminOrders.tsx";
+import Placeholder from "./pages/Placeholder.tsx";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +60,66 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            {/* Vendor Routes */}
+            <Route
+              path="/vendor/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <VendorDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vendor/menu"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <VendorMenu />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vendor/orders"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <VendorOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vendor/sales"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <VendorSales />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/vendors"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminVendors />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminOrders />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
