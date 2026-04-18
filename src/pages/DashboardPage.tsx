@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import StatCard from "@/components/StatCard";
@@ -31,15 +31,28 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const DashboardPage = () => {
-  const { role: rawRole } = useParams<{ role: string }>();
-  const role = rawRole === "student" ? "student" : rawRole;
+const DashboardPage = ({ role: propRole }: { role?: string }) => {
+  const { role: paramsRole } = useParams<{ role: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
+  const { signOut, user, loading: authLoading } = useAuth();
+
+  // Determine role from prop, params, or URL path
+  const rawRole = propRole || paramsRole || location.pathname.split("/").pop();
+  const role = rawRole === "student" || rawRole === "buyer" ? "student" : rawRole;
+
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("Overview");
 
-  const config = dashboardConfigs[role || ""];
+  const config = role ? dashboardConfigs[role] : null;
+
+  useEffect(() => {
+    if (!authLoading && !config && !propRole && !paramsRole) {
+      // Only redirect if we really can't find a config
+      console.error("Dashboard configuration not found for role:", role);
+      navigate("/");
+    }
+  }, [config, authLoading, navigate, role, propRole, paramsRole]);
 
   const { data: realStats, isLoading: statsLoading } = useQuery({
     queryKey: ["dashboard-stats", role, user?.id],
@@ -50,7 +63,7 @@ const DashboardPage = () => {
       else if (role === "vendor") rpcName = "get_vendor_stats";
       else if (role === "rider") rpcName = "get_rider_stats";
       else if (role === "admin") rpcName = "get_admin_stats";
-      else if (role === "farmer") rpcName = "get_vendor_stats"; // Farmers use vendor stats logic for now
+      else if (role === "farmer") rpcName = "get_farmer_stats";
 
       if (!rpcName) return null;
 
@@ -84,9 +97,15 @@ const DashboardPage = () => {
     enabled: !!user && !!role,
   });
 
-  if (!config) {
-    navigate("/");
-    return null;
+  if (authLoading || !config) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground font-body">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   // Map real stats to config structure

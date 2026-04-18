@@ -88,8 +88,9 @@ BEGIN
                 WHERE date_trunc('day', o.created_at) = d
                 AND (
                     _role IS NULL
-                    OR (_role = 'student' AND o.buyer_id = _user_id)
+                    OR (_role IN ('student', 'buyer') AND o.buyer_id = _user_id)
                     OR (_role = 'vendor' AND o.vendor_id = _user_id)
+                    OR (_role = 'farmer' AND o.vendor_id = _user_id)
                     OR (_role = 'rider' AND o.rider_id = _user_id)
                     OR (_role = 'admin')
                 )
@@ -123,8 +124,9 @@ BEGIN
                 AND o.status = 'delivered'
                 AND (
                     _role IS NULL
-                    OR (_role = 'student' AND o.buyer_id = _user_id) -- Spending for students
+                    OR (_role IN ('student', 'buyer') AND o.buyer_id = _user_id) -- Spending for students
                     OR (_role = 'vendor' AND o.vendor_id = _user_id)
+                    OR (_role = 'farmer' AND o.vendor_id = _user_id)
                     OR (_role = 'rider' AND o.rider_id = _user_id)
                     OR (_role = 'admin')
                 )
@@ -220,6 +222,46 @@ BEGIN
         'deliveries_today', deliveries_today,
         'active_delivery_id', active_delivery_id,
         'avg_rating', avg_rating
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get farmer dashboard statistics
+CREATE OR REPLACE FUNCTION get_farmer_stats(_user_id UUID)
+RETURNS JSON AS $$
+DECLARE
+    total_revenue NUMERIC;
+    active_stock INTEGER;
+    bulk_orders INTEGER;
+    avg_rating NUMERIC;
+BEGIN
+    -- Total Revenue
+    SELECT COALESCE(sum(total_amount), 0) INTO total_revenue
+    FROM orders
+    WHERE vendor_id = _user_id
+    AND status = 'delivered';
+
+    -- Active Stock
+    SELECT count(*) INTO active_stock
+    FROM meals
+    WHERE vendor_id = _user_id;
+
+    -- Bulk Orders (orders with qty > threshold or specific status)
+    SELECT count(*) INTO bulk_orders
+    FROM orders
+    WHERE vendor_id = _user_id
+    AND status != 'cancelled';
+
+    -- Average Rating
+    SELECT COALESCE(avg(rating), 0) INTO avg_rating
+    FROM reviews
+    WHERE vendor_id = _user_id;
+
+    RETURN json_build_object(
+        'total_revenue', total_revenue,
+        'menu_items', active_stock,
+        'active_orders', bulk_orders,
+        'avg_rating', round(avg_rating, 1)
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
