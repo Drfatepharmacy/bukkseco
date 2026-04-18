@@ -1,8 +1,12 @@
-import { motion } from "framer-motion";
-import { Clock, Package, Truck, CheckCircle, MapPin } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Clock, Package, Truck, CheckCircle, MapPin, Star, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ReviewDialog } from "./ReviewDialog";
 
 const statusSteps = [
   { key: "pending", label: "Order Received", icon: Package },
@@ -15,13 +19,14 @@ const statusSteps = [
 
 const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
   const { user } = useAuth();
+  const [reviewOrder, setReviewOrder] = useState<any | null>(null);
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, refetch } = useQuery({
     queryKey: ["orders", viewAs, user?.id],
     queryFn: async () => {
       let query = supabase
         .from("orders")
-        .select("*, order_items(*, meals(name, image_url))")
+        .select("*, order_items(*, meals(name, image_url)), reviews(*)")
         .order("created_at", { ascending: false });
 
       if (viewAs === "buyer") query = query.eq("buyer_id", user!.id);
@@ -50,92 +55,127 @@ const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
   }
 
   return (
-    <div className="space-y-4">
-      {orders.map((order: any, i: number) => {
-        const currentStep = getStatusIndex(order.status);
-        return (
-          <motion.div
-            key={order.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="geo-card p-5"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="font-display font-semibold text-foreground">{order.order_number}</h3>
-                <p className="text-xs text-muted-foreground font-body">
-                  {new Date(order.created_at).toLocaleDateString("en-NG", { dateStyle: "medium" })}
-                </p>
+    <>
+      <div className="space-y-4">
+        {orders.map((order: any, i: number) => {
+          const currentStep = getStatusIndex(order.status);
+          return (
+            <motion.div
+              key={order.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="geo-card p-5"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-display font-semibold text-foreground">{order.order_number}</h3>
+                  <p className="text-xs text-muted-foreground font-body">
+                    {new Date(order.created_at).toLocaleDateString("en-NG", { dateStyle: "medium" })}
+                  </p>
+                </div>
+                <span className={`text-xs px-2.5 py-1 rounded-full font-body font-semibold ${
+                  order.status === "delivered" ? "bg-success/10 text-success" :
+                  order.status === "cancelled" ? "bg-destructive/10 text-destructive" :
+                  "bg-primary/10 text-primary"
+                }`}>
+                  {order.status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                </span>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-body font-semibold ${
-                order.status === "delivered" ? "bg-success/10 text-success" :
-                order.status === "cancelled" ? "bg-destructive/10 text-destructive" :
-                "bg-primary/10 text-primary"
-              }`}>
-                {order.status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
-              </span>
-            </div>
 
-            {/* Order items */}
-            <div className="space-y-2 mb-4">
-              {order.order_items?.map((item: any) => (
-                <div key={item.id} className="flex items-center gap-3">
-                  {item.meals?.image_url ? (
-                    <img src={item.meals.image_url} alt={item.meals?.name} className="w-10 h-10 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">🍽️</div>
+              {/* Order items */}
+              <div className="space-y-2 mb-4">
+                {order.order_items?.map((item: any) => (
+                  <div key={item.id} className="flex items-center gap-3">
+                    {item.meals?.image_url ? (
+                      <img src={item.meals.image_url} alt={item.meals?.name} className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">🍽️</div>
+                    )}
+                    <div className="flex-1">
+                      <p className="text-sm font-body text-foreground">{item.meals?.name}</p>
+                      <p className="text-xs text-muted-foreground font-body">x{item.quantity} • ₦{Number(item.unit_price).toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Progress timeline */}
+              {order.status !== "cancelled" && (
+                <div className="flex items-center gap-1 overflow-x-auto pb-2">
+                  {statusSteps.map((step, idx) => {
+                    const isActive = idx <= currentStep;
+                    return (
+                      <div key={step.key} className="flex items-center">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        }`}>
+                          <step.icon className="w-3 h-3" />
+                        </div>
+                        {idx < statusSteps.length - 1 && (
+                          <div className={`w-6 h-0.5 ${idx < currentStep ? "bg-primary" : "bg-muted"}`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs text-muted-foreground font-body">
+                    {order.delivery_address && `📍 ${order.delivery_address}`}
+                  </span>
+                  <div className="flex items-center gap-2">
+                  {order.payment_status && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-body font-semibold ${
+                      order.payment_status === "paid" ? "bg-success/10 text-success" :
+                      order.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
+                      "bg-muted text-muted-foreground"
+                    }`}>
+                      {order.payment_status === "paid" ? "💳 Paid" : order.payment_status === "failed" ? "❌ Failed" : "⏳ Pending"}
+                    </span>
                   )}
-                  <div className="flex-1">
-                    <p className="text-sm font-body text-foreground">{item.meals?.name}</p>
-                    <p className="text-xs text-muted-foreground font-body">x{item.quantity} • ₦{Number(item.unit_price).toLocaleString()}</p>
+                  {viewAs === "buyer" && order.status === "delivered" && (
+                    order.reviews && order.reviews.length > 0 ? (
+                      <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5 text-primary fill-primary" /> Rated {order.reviews[0].rating}
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-[10px] text-primary hover:text-primary hover:bg-primary/5 font-bold"
+                        onClick={() => setReviewOrder(order)}
+                      >
+                        <Star className="w-2.5 h-2.5 mr-1" /> Rate Order
+                      </Button>
+                    )
+                  )}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Progress timeline */}
-            {order.status !== "cancelled" && (
-              <div className="flex items-center gap-1 overflow-x-auto pb-2">
-                {statusSteps.map((step, idx) => {
-                  const isActive = idx <= currentStep;
-                  return (
-                    <div key={step.key} className="flex items-center">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      }`}>
-                        <step.icon className="w-3 h-3" />
-                      </div>
-                      {idx < statusSteps.length - 1 && (
-                        <div className={`w-6 h-0.5 ${idx < currentStep ? "bg-primary" : "bg-muted"}`} />
-                      )}
-                    </div>
-                  );
-                })}
+                <span className="font-display font-bold text-foreground">₦{Number(order.total_amount).toLocaleString()}</span>
               </div>
-            )}
+            </motion.div>
+          );
+        })}
+      </div>
 
-            <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-body">
-                  {order.delivery_address && `📍 ${order.delivery_address}`}
-                </span>
-                {order.payment_status && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-body font-semibold ${
-                    order.payment_status === "paid" ? "bg-success/10 text-success" :
-                    order.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
-                    "bg-muted text-muted-foreground"
-                  }`}>
-                    {order.payment_status === "paid" ? "💳 Paid" : order.payment_status === "failed" ? "❌ Failed" : "⏳ Pending"}
-                  </span>
-                )}
-              </div>
-              <span className="font-display font-bold text-foreground">₦{Number(order.total_amount).toLocaleString()}</span>
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
+      <Dialog open={!!reviewOrder} onOpenChange={() => setReviewOrder(null)}>
+        <DialogContent className="sm:max-w-md p-0">
+          {reviewOrder && (
+            <ReviewDialog
+              order={reviewOrder}
+              onSuccess={() => {
+                setReviewOrder(null);
+                refetch();
+              }}
+              onCancel={() => setReviewOrder(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

@@ -67,6 +67,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Overview", icon: LayoutDashboard },
       { label: "Manage Menu", icon: Utensils },
       { label: "Orders", icon: Package },
+      { label: "Reviews", icon: Star },
       { label: "Reservations", icon: CalendarDays },
       { label: "Messages", icon: MessageCircle },
       { label: "Support", icon: LifeBuoy },

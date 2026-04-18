@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { VendorReviews } from "@/components/VendorReviews";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const VendorStorefrontPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -179,57 +181,73 @@ const VendorStorefrontPage = () => {
           ))}
         </div>
 
-        {/* Menu Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-24">
-          {filtered.map((meal, i) => {
-            const outOfStock = meal.stock_quantity !== null && meal.stock_quantity <= 0;
-            return (
-              <motion.div
-                key={meal.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className={`geo-card overflow-hidden ${outOfStock ? "opacity-60" : ""}`}
-              >
-                {meal.image_url ? (
-                  <img src={meal.image_url} alt={meal.name} className="w-full h-40 object-cover" loading="lazy" />
-                ) : (
-                  <div className="w-full h-40 bg-muted/50 flex items-center justify-center text-4xl">🍽️</div>
-                )}
-                <div className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-display font-semibold text-foreground">{meal.name}</h3>
-                      <p className="text-xs text-muted-foreground font-body mt-1 line-clamp-2">{meal.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-                    <span className="text-xs font-body text-muted-foreground">{Number(meal.rating_avg ?? 0).toFixed(1)}</span>
-                    {meal.category && <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-body">{meal.category}</span>}
-                    {meal.stock_quantity !== null && meal.stock_quantity <= 10 && meal.stock_quantity > 0 && (
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-body">{meal.stock_quantity} left</span>
+        <Tabs defaultValue="menu" className="w-full mb-24">
+          <TabsList className="w-full bg-muted/50 p-1 mb-6">
+            <TabsTrigger value="menu" className="flex-1 font-display font-semibold">Menu</TabsTrigger>
+            <TabsTrigger value="reviews" className="flex-1 font-display font-semibold">Reviews</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="menu">
+            {/* Menu Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {filtered.map((meal, i) => {
+                const outOfStock = meal.stock_quantity !== null && meal.stock_quantity <= 0;
+                return (
+                  <motion.div
+                    key={meal.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className={`geo-card overflow-hidden ${outOfStock ? "opacity-60" : ""}`}
+                  >
+                    {meal.image_url ? (
+                      <img src={meal.image_url} alt={meal.name} className="w-full h-40 object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-40 bg-muted/50 flex items-center justify-center text-4xl">🍽️</div>
                     )}
-                    {outOfStock && (
-                      <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full font-body">Sold out</span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex flex-col">
-                      <span className="font-display text-lg font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
-                      {meal.group_buy_enabled && (
-                        <span className="text-[10px] text-primary font-bold">Group Buy Available</span>
-                      )}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-display font-semibold text-foreground">{meal.name}</h3>
+                          <p className="text-xs text-muted-foreground font-body mt-1 line-clamp-2">{meal.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Star className="w-3.5 h-3.5 text-primary fill-primary" />
+                        <span className="text-xs font-body text-muted-foreground">{Number(meal.rating_avg ?? 0).toFixed(1)}</span>
+                        {meal.category && <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-body">{meal.category}</span>}
+                        {meal.stock_quantity !== null && meal.stock_quantity <= 10 && meal.stock_quantity > 0 && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-body">{meal.stock_quantity} left</span>
+                        )}
+                        {outOfStock && (
+                          <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full font-body">Sold out</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex flex-col">
+                          <span className="font-display text-lg font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
+                          {meal.group_buy_enabled && (
+                            <span className="text-[10px] text-primary font-bold">Group Buy Available</span>
+                          )}
+                        </div>
+                        <Button onClick={() => addToCart(meal.id)} size="sm" className="btn-gold" disabled={outOfStock}>
+                          <Plus className="w-4 h-4 mr-1" /> {outOfStock ? "Sold out" : "Add"}
+                        </Button>
+                      </div>
                     </div>
-                    <Button onClick={() => addToCart(meal.id)} size="sm" className="btn-gold" disabled={outOfStock}>
-                      <Plus className="w-4 h-4 mr-1" /> {outOfStock ? "Sold out" : "Add"}
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <div className="max-w-2xl mx-auto">
+              <h3 className="font-display font-bold text-xl mb-6">Customer Feedback</h3>
+              <VendorReviews vendorId={vendor.user_id} />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Floating Cart */}
