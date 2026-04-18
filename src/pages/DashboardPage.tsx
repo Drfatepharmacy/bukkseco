@@ -14,7 +14,7 @@ import OrdersList from "@/components/OrdersList";
 import HealthTipsLive from "@/components/HealthTipsLive";
 import RiderDeliverySystem from "@/components/RiderDeliverySystem";
 import TableReservation from "@/components/TableReservation";
-import ChatSystemV2 from "@/components/ChatSystemV2";
+import { MessagingTerminal } from "@/components/messaging/MessagingTerminal";
 import CampusFeed from "@/components/CampusFeed";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
@@ -47,7 +47,7 @@ const DashboardPage = () => {
 
   const renderContent = () => {
     // Shared: Messages, Campus Feed
-    if (activeNav === "Messages") return <ChatSystemV2 />;
+    if (activeNav === "Messages") return <MessagingTerminal />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
 
     // Vendor
