@@ -140,6 +140,7 @@ export const dashboardConfigs: Record<string, {
       { label: "Verify Riders", icon: Bike },
       { label: "Monitor Orders", icon: Package },
       { label: "Campus Feed", icon: Megaphone },
+      { label: "Messages", icon: MessageCircle },
       { label: "Analytics", icon: BarChart3 },
       { label: "Support Tickets", icon: Ticket },
       { label: "Disputes", icon: AlertTriangle },
