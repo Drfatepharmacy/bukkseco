@@ -2,7 +2,7 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS profiles_username_idx ON public.profiles (username);
 
--- Update chat_messages table
+-- Update chat_messages table to align with prompt requirements while respecting existing columns
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'attachment_type') THEN
@@ -10,9 +10,10 @@ BEGIN
     END IF;
 END $$;
 
+-- read_by is requested for 'read indicators' logic
 ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS read_by UUID[] DEFAULT '{}';
 ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS attachment_type public.attachment_type;
-ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS attachment_url TEXT;
+-- We use existing media_url but ensure it's there (it already is according to types.ts)
 
 -- Ensure indexes for performance
 CREATE INDEX IF NOT EXISTS chat_messages_room_id_idx ON public.chat_messages (room_id);
@@ -49,17 +50,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Chat Rooms policies
-DROP POLICY IF EXISTS "Users can view rooms they are part of" ON public.chat_rooms;
-CREATE POLICY "Users can view rooms they are part of" ON public.chat_rooms
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.chat_participants
-            WHERE room_id = public.chat_rooms.id AND user_id = auth.uid()
-        )
-    );
-
--- RPC for marking messages as read (appending to uuid array)
+-- RPC for marking messages as read
 CREATE OR REPLACE FUNCTION public.mark_messages_as_read(message_ids UUID[], user_id UUID)
 RETURNS VOID AS $$
 BEGIN
@@ -69,6 +60,16 @@ BEGIN
     AND NOT (user_id = ANY(read_by));
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Chat Rooms policies
+DROP POLICY IF EXISTS "Users can view rooms they are part of" ON public.chat_rooms;
+CREATE POLICY "Users can view rooms they are part of" ON public.chat_rooms
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.chat_participants
+            WHERE room_id = public.chat_rooms.id AND user_id = auth.uid()
+        )
+    );
 
 -- Chat Participants policies
 DROP POLICY IF EXISTS "Users can view participants of their rooms" ON public.chat_participants;

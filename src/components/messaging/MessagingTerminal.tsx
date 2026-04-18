@@ -189,7 +189,7 @@ export const MessagingTerminal = () => {
           room_id: activeConv.id,
           sender_id: currentUser.id,
           content: newMessage.trim(),
-          attachment_url: attachment?.url,
+          media_url: attachment?.url,
           attachment_type: attachment?.type,
         });
 
