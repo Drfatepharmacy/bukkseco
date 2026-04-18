@@ -30,63 +30,107 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const DashboardPage = () => {
-  const { role: rawRole } = useParams<{ role: string }>();
+interface DashboardPageProps {
+  role?: string;
+}
+
+const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
+  const { role: paramRole } = useParams<{ role: string }>();
+  const rawRole = propsRole || paramRole;
   const role = rawRole === "student" ? "student" : rawRole;
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
+  const { signOut, user, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("Overview");
 
   const config = dashboardConfigs[role || ""];
 
-  const { data: realStats, isLoading: statsLoading } = useQuery({
+  const { data: realStats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ["dashboard-stats", role, user?.id],
     queryFn: async () => {
-      if (!user) return null;
-      let rpcName = "";
-      if (role === "student") rpcName = "get_student_stats";
-      else if (role === "vendor") rpcName = "get_vendor_stats";
-      else if (role === "rider") rpcName = "get_rider_stats";
-      else if (role === "admin") rpcName = "get_admin_stats";
-      else if (role === "farmer") rpcName = "get_vendor_stats"; // Farmers use vendor stats logic for now
+      try {
+        if (!user) return null;
+        let rpcName = "";
+        if (role === "student") rpcName = "get_student_stats";
+        else if (role === "vendor") rpcName = "get_vendor_stats";
+        else if (role === "rider") rpcName = "get_rider_stats";
+        else if (role === "admin") rpcName = "get_admin_stats";
+        else if (role === "farmer") rpcName = "get_vendor_stats";
 
-      if (!rpcName) return null;
+        if (!rpcName) return null;
 
-      const { data, error } = await (rpcName === "get_admin_stats"
-        ? supabase.rpc(rpcName as any)
-        : supabase.rpc(rpcName as any, { _user_id: user.id }));
+        const { data, error } = await (rpcName === "get_admin_stats"
+          ? supabase.rpc(rpcName as any)
+          : supabase.rpc(rpcName as any, { _user_id: user.id }));
 
-      if (error) {
-        console.error("Error fetching stats:", error);
-        return null;
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error("Error in dashboard stats query:", err);
+        throw err;
       }
-      return data;
     },
     enabled: !!user && !!role,
+    retry: 1
   });
 
-  const { data: chartData } = useQuery({
+  const { data: chartData, error: chartsError } = useQuery({
     queryKey: ["dashboard-charts", role, user?.id],
     queryFn: async () => {
-      if (!user) return null;
-      const { data: orders } = await supabase.rpc("get_order_chart_data", {
-        _user_id: user.id,
-        _role: role
-      } as any);
-      const { data: revenue } = await supabase.rpc("get_revenue_chart_data", {
-        _user_id: user.id,
-        _role: role
-      } as any);
-      return { orders, revenue };
+      try {
+        if (!user) return null;
+        const { data: orders, error: ordersErr } = await supabase.rpc("get_order_chart_data", {
+          _user_id: user.id,
+          _role: role
+        } as any);
+        if (ordersErr) throw ordersErr;
+
+        const { data: revenue, error: revenueErr } = await supabase.rpc("get_revenue_chart_data", {
+          _user_id: user.id,
+          _role: role
+        } as any);
+        if (revenueErr) throw revenueErr;
+
+        return { orders, revenue };
+      } catch (err) {
+        console.error("Error in dashboard charts query:", err);
+        throw err;
+      }
     },
     enabled: !!user && !!role,
+    retry: 1
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+          <p className="font-body text-muted-foreground">Initializing dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!config) {
-    navigate("/");
-    return null;
+    console.warn(`No config found for role: ${role}`);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Configuration Error</AlertTitle>
+          <AlertDescription>
+            We couldn't load the dashboard for your role ({role}).
+            <Button variant="outline" size="sm" onClick={() => navigate("/")} className="mt-4 w-full">
+              Return Home
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
   // Map real stats to config structure
@@ -203,6 +247,29 @@ const DashboardPage = () => {
     // Default: Overview
     return (
       <>
+        {user?.email === "ilomuche@gmail.com" && (
+          <div className="mb-8 p-4 bg-black text-green-500 rounded-lg font-mono text-xs overflow-auto max-h-60 border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+            <div className="flex justify-between items-center mb-2 border-b border-green-500/30 pb-2">
+              <span className="font-bold text-sm uppercase tracking-wider">System Debug Terminal [v1.0.4]</span>
+              <span className="px-2 py-0.5 bg-green-500 text-black text-[10px] font-bold rounded">LIVE</span>
+            </div>
+            <div className="space-y-1">
+              <p><span className="text-gray-500">[{new Date().toISOString()}]</span> SESSION_STATUS: <span className="text-white">ACTIVE</span></p>
+              <p><span className="text-gray-500">[{new Date().toISOString()}]</span> USER_ID: <span className="text-white">{user?.id}</span></p>
+              <p><span className="text-gray-500">[{new Date().toISOString()}]</span> ROLE_DETECTED: <span className="text-white">{role}</span></p>
+              <p><span className="text-gray-500">[{new Date().toISOString()}]</span> CONFIG_LOADED: <span className={config ? "text-green-400" : "text-red-400"}>{config ? "YES" : "NO"}</span></p>
+              <p><span className="text-gray-500">[{new Date().toISOString()}]</span> STATS_QUERY: <span className={statsLoading ? "text-yellow-400" : statsError ? "text-red-400" : "text-green-400"}>{statsLoading ? "LOADING" : statsError ? `ERROR: ${(statsError as any).message}` : "SUCCESS"}</span></p>
+              <p><span className="text-gray-500">[{new Date().toISOString()}]</span> CHARTS_QUERY: <span className={chartsError ? "text-red-400" : "text-green-400"}>{chartsError ? `ERROR: ${(chartsError as any).message}` : "SUCCESS"}</span></p>
+              <details className="mt-2 cursor-pointer">
+                <summary className="text-blue-400 hover:text-blue-300 transition-colors">RAW_SESSION_DATA</summary>
+                <pre className="mt-1 p-2 bg-gray-900 rounded border border-gray-800 text-[10px] text-gray-300">
+                  {JSON.stringify(user, null, 2)}
+                </pre>
+              </details>
+            </div>
+          </div>
+        )}
+
         {role === "student" && <FoodHero />}
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

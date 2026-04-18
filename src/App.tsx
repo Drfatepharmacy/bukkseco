@@ -24,26 +24,34 @@ import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminVendors from "./pages/admin/AdminVendors.tsx";
 import AdminOrders from "./pages/admin/AdminOrders.tsx";
 import Placeholder from "./pages/Placeholder.tsx";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
+console.log("APP START");
+console.log("Environment check:", {
+  url: import.meta.env.VITE_SUPABASE_URL ? "Set" : "Missing",
+  key: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ? "Set" : "Missing",
+});
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <CartProvider>
-            <Routes>
-            <Route path="/" element={<Index />} />
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <CartProvider>
+              <Routes>
+              <Route path="/" element={<Index />} />
             <Route path="/signup/:role" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/dashboard/student"
               element={
                 <ProtectedRoute allowedRoles={["buyer"]}>
-                  <DashboardPage />
+                  <DashboardPage role="student" />
                 </ProtectedRoute>
               }
             />
@@ -51,7 +59,7 @@ const App = () => (
               path="/dashboard/vendor"
               element={
                 <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardPage />
+                  <DashboardPage role="vendor" />
                 </ProtectedRoute>
               }
             />
@@ -59,7 +67,7 @@ const App = () => (
               path="/dashboard/rider"
               element={
                 <ProtectedRoute allowedRoles={["rider"]}>
-                  <DashboardPage />
+                  <DashboardPage role="rider" />
                 </ProtectedRoute>
               }
             />
@@ -67,7 +75,7 @@ const App = () => (
               path="/dashboard/farmer"
               element={
                 <ProtectedRoute allowedRoles={["farmer"]}>
-                  <DashboardPage />
+                  <DashboardPage role="farmer" />
                 </ProtectedRoute>
               }
             />
@@ -75,7 +83,7 @@ const App = () => (
               path="/dashboard/admin"
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
-                  <DashboardPage />
+                  <DashboardPage role="admin" />
                 </ProtectedRoute>
               }
             />
@@ -154,14 +162,15 @@ const App = () => (
               }
             />
 
-              <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </CartProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+                <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </CartProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
