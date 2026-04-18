@@ -9,9 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
-import StudentDashboard from "./pages/StudentDashboard.tsx";
-import RiderDashboard from "./pages/RiderDashboard.tsx";
-import FarmerDashboard from "./pages/FarmerDashboard.tsx";
+import DashboardPage from "./pages/DashboardPage.tsx";
 import HowItWorksPage from "./pages/HowItWorksPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
 import FounderConsolePage from "./pages/FounderConsolePage.tsx";
@@ -45,7 +43,7 @@ const App = () => (
               path="/dashboard/student"
               element={
                 <ProtectedRoute allowedRoles={["buyer"]}>
-                  <StudentDashboard />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />
@@ -53,7 +51,7 @@ const App = () => (
               path="/dashboard/vendor"
               element={
                 <ProtectedRoute allowedRoles={["vendor"]}>
-                  <VendorDashboard />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />
@@ -61,7 +59,7 @@ const App = () => (
               path="/dashboard/rider"
               element={
                 <ProtectedRoute allowedRoles={["rider"]}>
-                  <RiderDashboard />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />
@@ -69,7 +67,7 @@ const App = () => (
               path="/dashboard/farmer"
               element={
                 <ProtectedRoute allowedRoles={["farmer"]}>
-                  <FarmerDashboard />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />
@@ -77,7 +75,7 @@ const App = () => (
               path="/dashboard/admin"
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminDashboard />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />

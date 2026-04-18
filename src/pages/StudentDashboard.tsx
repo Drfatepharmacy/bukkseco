@@ -1,18 +1,19 @@
 import { dashboardConfigs } from "@/config/dashboardConfig";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatCard from "@/components/StatCard";
 import InteractiveChart from "@/components/InteractiveChart";
 import DashboardSidebar from "@/components/DashboardSidebar";
-import VendorMenuManager from "@/components/VendorMenuManager";
+import FoodHero from "@/components/FoodHero";
+import HealthTipsLive from "@/components/HealthTipsLive";
+import GroupBuySection from "@/components/GroupBuySection";
+import BrowseFood from "@/components/BrowseFood";
 import OrdersList from "@/components/OrdersList";
-import { VendorReviews } from "@/components/VendorReviews";
 import TableReservation from "@/components/TableReservation";
-import { MessagingTerminal } from "@/components/messaging/MessagingTerminal";
 import CampusFeed from "@/components/CampusFeed";
-import AdvancedAnalytics from "@/components/AdvancedAnalytics";
+import { MessagingTerminal } from "@/components/messaging/MessagingTerminal";
 import SupportTicketSystem from "@/components/SupportTicketSystem";
 import ProfileSettings from "@/components/ProfileSettings";
+import LiveRiderTracking from "@/components/LiveRiderTracking";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -20,18 +21,18 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const VendorDashboard = () => {
+const StudentDashboard = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("Overview");
-  const config = dashboardConfigs.vendor;
+  const config = dashboardConfigs.student;
 
   const { data: realStats } = useQuery({
-    queryKey: ["dashboard-stats", "vendor", user?.id],
+    queryKey: ["dashboard-stats", "student", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase.rpc("get_vendor_stats", { _user_id: user.id });
+      const { data, error } = await supabase.rpc("get_student_stats", { _user_id: user.id });
       if (error) return null;
       return data;
     },
@@ -39,11 +40,11 @@ const VendorDashboard = () => {
   });
 
   const { data: chartData } = useQuery({
-    queryKey: ["dashboard-charts", "vendor", user?.id],
+    queryKey: ["dashboard-charts", "student", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data: orders } = await supabase.rpc("get_order_chart_data", { _user_id: user.id, _role: "vendor" } as any);
-      const { data: revenue } = await supabase.rpc("get_revenue_chart_data", { _user_id: user.id, _role: "vendor" } as any);
+      const { data: orders } = await supabase.rpc("get_order_chart_data", { _user_id: user.id, _role: "student" } as any);
+      const { data: revenue } = await supabase.rpc("get_revenue_chart_data", { _user_id: user.id, _role: "student" } as any);
       return { orders, revenue };
     },
     enabled: !!user,
@@ -54,17 +55,17 @@ const VendorDashboard = () => {
   const displayStats = config.stats.map(stat => {
     if (!realStats) return stat;
     let newValue = stat.value;
-    if (stat.title === "Total Revenue") newValue = (realStats as any).total_revenue;
-    if (stat.title === "Active Orders") newValue = (realStats as any).active_orders;
-    if (stat.title === "Menu Items") newValue = (realStats as any).menu_items;
-    if (stat.title === "Customer Rating") newValue = (realStats as any).avg_rating;
+    if (stat.title === "Orders This Month") newValue = (realStats as any).orders_this_month;
+    if (stat.title === "Active Deliveries") newValue = (realStats as any).active_deliveries;
+    if (stat.title === "Average Rating") newValue = (realStats as any).avg_rating;
+    if (stat.title === "Savings") newValue = (realStats as any).total_savings;
     return { ...stat, value: newValue };
   });
 
   const displayCharts = config.charts.map(chart => {
     if (!chartData) return chart;
     if (chart.title.toLowerCase().includes("order")) return { ...chart, data: (chartData as any).orders || chart.data };
-    if (chart.title.toLowerCase().includes("revenue")) return { ...chart, data: (chartData as any).revenue || chart.data };
+    if (chart.title.toLowerCase().includes("spending")) return { ...chart, data: (chartData as any).revenue || chart.data };
     return chart;
   });
 
@@ -77,60 +78,42 @@ const VendorDashboard = () => {
   const renderContent = () => {
     if (activeNav === "Messages") return <MessagingTerminal />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
-    if (activeNav === "Manage Menu") return <VendorMenuManager />;
-    if (activeNav === "Orders") return <OrdersList viewAs="vendor" />;
-    if (activeNav === "Reviews") return <VendorReviews vendorId={user?.id || ""} />;
+    if (activeNav === "Browse Food") return <BrowseFood />;
+    if (activeNav === "My Orders") return <OrdersList viewAs="buyer" />;
+    if (activeNav === "Farm Produce") return <GroupBuySection />;
     if (activeNav === "Reservations") return <TableReservation />;
+    if (activeNav === "Track Delivery") return <LiveRiderTracking />;
     if (activeNav === "Support") return <SupportTicketSystem viewAs="user" />;
-    if (activeNav === "Settings") return <ProfileSettings role="vendor" />;
-    if (activeNav === "Revenue") return <AdvancedAnalytics />;
+    if (activeNav === "Settings") return <ProfileSettings role="student" />;
 
     return (
       <>
+        <FoodHero />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {displayStats.map((stat, i) => (
             <StatCard key={i} {...stat} />
           ))}
         </div>
+        <div className="mb-8"><HealthTipsLive /></div>
+        <div className="mb-8"><GroupBuySection /></div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {displayCharts.map((chart, i) => (
             <InteractiveChart key={i} {...chart} />
           ))}
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold text-foreground">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-             <div className="space-y-3">
-              {[
-                { text: "New order #1247 received", time: "2 min ago", status: "active" },
-                { text: "Payment of ₦3,500 processed", time: "15 min ago", status: "success" },
-                { text: "Delivery completed for order #1245", time: "1 hour ago", status: "done" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                  <span className="text-sm font-body text-foreground">{item.text}</span>
-                  <span className="text-xs text-muted-foreground font-body">{item.time}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </>
     );
   };
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <DashboardSidebar items={navItems} role="Vendor" collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+      <DashboardSidebar items={navItems} role="Student" collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <main className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
         <div className="p-8">
-           <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="font-display text-3xl font-bold text-foreground">Vendor Dashboard</h1>
-              <p className="text-muted-foreground font-body text-sm mt-1">
-                Welcome back, {user?.user_metadata?.full_name || "Vendor"}
-              </p>
+              <h1 className="font-display text-3xl font-bold text-foreground">Student Dashboard</h1>
+              <p className="text-muted-foreground font-body text-sm mt-1">Welcome back, {user?.email}</p>
             </div>
             <Button variant="outline" onClick={() => { signOut(); navigate("/"); }}>Log Out</Button>
           </div>
@@ -141,4 +124,4 @@ const VendorDashboard = () => {
   );
 };
 
-export default VendorDashboard;
+export default StudentDashboard;
