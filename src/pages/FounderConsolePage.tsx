@@ -25,9 +25,9 @@ const FounderConsolePage = () => {
   const [loading, setLoading] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
 
-  // Founder must be admin
+  // Founder must be super_admin
   useEffect(() => {
-    if (role && role !== "admin") {
+    if (role && role !== "super_admin") {
       navigate("/");
     }
   }, [role, navigate]);

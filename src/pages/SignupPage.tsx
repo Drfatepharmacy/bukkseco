@@ -12,7 +12,7 @@ import { nigerianStates } from "@/data/nigerianStates";
 import { supabase } from "@/integrations/supabase/client";
 
 const roleMap: Record<string, { label: string; dbRole: string }> = {
-  student: { label: "Buyer", dbRole: "buyer" },
+  student: { label: "Buyer", dbRole: "user" },
   vendor: { label: "Vendor", dbRole: "vendor" },
   farmer: { label: "Farmer", dbRole: "farmer" },
   rider: { label: "Rider", dbRole: "rider" },
@@ -42,7 +42,7 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
 
   const config = roleMap[role || ""];
-  if (!config || role === "admin") {
+  if (!config || role === "admin" || role === "super_admin") {
     navigate("/");
     return null;
   }

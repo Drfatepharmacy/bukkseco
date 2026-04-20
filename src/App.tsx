@@ -42,7 +42,7 @@ const App = () => (
             <Route
               path="/dashboard/student"
               element={
-                <ProtectedRoute allowedRoles={["buyer"]}>
+                <ProtectedRoute allowedRoles={["user", "buyer"]}>
                   <DashboardPage />
                 </ProtectedRoute>
               }
@@ -74,7 +74,7 @@ const App = () => (
             <Route
               path="/dashboard/admin"
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                   <DashboardPage />
                 </ProtectedRoute>
               }
@@ -89,7 +89,7 @@ const App = () => (
             <Route
               path="/founder-console"
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["super_admin"]}>
                   <FounderConsolePage />
                 </ProtectedRoute>
               }
@@ -132,7 +132,7 @@ const App = () => (
             <Route
               path="/admin/dashboard"
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -140,7 +140,7 @@ const App = () => (
             <Route
               path="/admin/vendors"
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                   <AdminVendors />
                 </ProtectedRoute>
               }
@@ -148,7 +148,7 @@ const App = () => (
             <Route
               path="/admin/orders"
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                   <AdminOrders />
                 </ProtectedRoute>
               }

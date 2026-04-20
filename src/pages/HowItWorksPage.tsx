@@ -6,7 +6,7 @@ import SupportButton from "@/components/SupportButton";
 
 const steps = [
   {
-    role: "Buyers",
+    role: "Users",
     icon: ShoppingBag,
     color: "bg-primary/10 text-primary",
     steps: ["Create your account", "Browse meals & farm produce", "Join a group buy for discounts", "Pay securely via Paystack", "Track delivery in real-time"],
@@ -15,7 +15,7 @@ const steps = [
     role: "Vendors",
     icon: Utensils,
     color: "bg-secondary/10 text-secondary",
-    steps: ["Register your food business", "Upload your menu & photos", "Receive and manage orders", "Prepare meals for pickup", "Riders deliver to buyers"],
+    steps: ["Register your food business", "Upload your menu & photos", "Receive and manage orders", "Prepare meals for pickup", "Riders deliver to users"],
   },
   {
     role: "Farmers",
@@ -27,12 +27,12 @@ const steps = [
     role: "Riders",
     icon: Bike,
     color: "bg-primary/10 text-primary",
-    steps: ["Sign up with vehicle details", "Accept delivery requests", "Pick up from vendors", "Deliver to buyers on campus", "Earn per delivery"],
+    steps: ["Sign up with vehicle details", "Accept delivery requests", "Pick up from vendors", "Deliver to users on campus", "Earn per delivery"],
   },
 ];
 
 const features = [
-  { icon: Users, title: "Group Buying", desc: "Pool orders with other buyers to unlock lower prices on meals and produce." },
+  { icon: Users, title: "Group Buying", desc: "Pool orders with other users to unlock lower prices on meals and produce." },
   { icon: Heart, title: "Daily Health Tips", desc: "Get daily nutrition advice, hydration reminders, and balanced meal ideas." },
   { icon: Bell, title: "Smart Notifications", desc: "Real-time updates on orders, deliveries, group buy status, and promotions." },
 ];
@@ -54,7 +54,7 @@ const HowItWorksPage = () => {
             How <span className="gradient-text">Bukks</span> Works
           </h1>
           <p className="text-muted-foreground font-body text-lg max-w-2xl mx-auto">
-            A connected ecosystem where buyers, vendors, farmers, and riders work together to deliver fresh, affordable food on campus.
+            A connected ecosystem where users, vendors, farmers, and riders work together to deliver fresh, affordable food on campus.
           </p>
         </motion.div>
 

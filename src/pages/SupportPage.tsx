@@ -31,7 +31,7 @@ const SupportPage = () => {
         user_id: user.id,
         name: form.name || user.user_metadata?.full_name || "User",
         email: form.email || user.email || "",
-        role: form.role || role || "buyer",
+        role: form.role || role || "user",
         category: form.category,
         subject: form.subject,
         message: form.message,

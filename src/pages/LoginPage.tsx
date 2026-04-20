@@ -41,7 +41,7 @@ const LoginPage = () => {
 
       const role = roleData?.role || "student";
       // Map 'buyer' role to 'student' route for dashboard
-      const dashboardRole = role === "buyer" ? "student" : role;
+      const dashboardRole = (role === "buyer" || role === "user") ? "student" : (role === "super_admin" ? "admin" : role);
       toast.success("Welcome back to BUKKS!");
       navigate(`/dashboard/${dashboardRole}`);
     }

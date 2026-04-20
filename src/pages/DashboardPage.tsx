@@ -49,7 +49,7 @@ const DashboardPage = () => {
       if (role === "student") rpcName = "get_student_stats";
       else if (role === "vendor") rpcName = "get_vendor_stats";
       else if (role === "rider") rpcName = "get_rider_stats";
-      else if (role === "admin") rpcName = "get_admin_stats";
+      else if (role === "admin" || role === "super_admin") rpcName = "get_admin_stats";
       else if (role === "farmer") rpcName = "get_vendor_stats"; // Farmers use vendor stats logic for now
 
       if (!rpcName) return null;
@@ -121,7 +121,7 @@ const DashboardPage = () => {
       if (stat.title === "Deliveries Today") newValue = (realStats as any).deliveries_today;
       if (stat.title === "Active Delivery") newValue = (realStats as any).active_delivery_id ? 1 : 0;
       if (stat.title === "Rating") newValue = (realStats as any).avg_rating;
-    } else if (role === "admin") {
+    } else if (role === "admin" || role === "super_admin") {
       if (stat.title === "Total Users") newValue = (realStats as any).total_users;
       if (stat.title === "Platform Revenue") newValue = (realStats as any).platform_revenue;
       if (stat.title === "Pending Approvals") newValue = (realStats as any).pending_approvals;
@@ -150,7 +150,7 @@ const DashboardPage = () => {
 
     // Buyer
     if (role === "student" && activeNav === "Browse Food") return <BrowseFood />;
-    if (role === "student" && activeNav === "My Orders") return <OrdersList viewAs="buyer" />;
+    if (role === "student" && activeNav === "My Orders") return <OrdersList viewAs="user" />;
     if (role === "student" && activeNav === "Farm Produce") return <GroupBuySection />;
     if (role === "student" && activeNav === "Reservations") return <TableReservation />;
 
@@ -163,19 +163,19 @@ const DashboardPage = () => {
     if (role === "farmer" && activeNav === "Upload Produce") return <FarmerStockManager />;
 
     // Admin
-    if (role === "admin" && activeNav === "Approve Vendors") return <AdminApprovals filterRole="vendor" />;
-    if (role === "admin" && activeNav === "Approve Farmers") return <AdminApprovals filterRole="farmer" />;
-    if (role === "admin" && activeNav === "Verify Riders") return <AdminApprovals filterRole="rider" />;
-    if (role === "admin" && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
-    if (role === "admin" && activeNav === "Analytics") return <AnalyticsDashboard />;
-    if (role === "admin" && activeNav === "Support Tickets") return <SupportTicketSystem viewAs="admin" />;
+    if ((role === "admin" || role === "super_admin") && activeNav === "Approve Vendors") return <AdminApprovals filterRole="vendor" />;
+    if ((role === "admin" || role === "super_admin") && activeNav === "Approve Farmers") return <AdminApprovals filterRole="farmer" />;
+    if ((role === "admin" || role === "super_admin") && activeNav === "Verify Riders") return <AdminApprovals filterRole="rider" />;
+    if ((role === "admin" || role === "super_admin") && activeNav === "Monitor Orders") return <OrdersList viewAs="vendor" />;
+    if ((role === "admin" || role === "super_admin") && activeNav === "Analytics") return <AnalyticsDashboard />;
+    if ((role === "admin" || role === "super_admin") && activeNav === "Support Tickets") return <SupportTicketSystem viewAs="admin" />;
 
     // Support tickets for all roles
     if (activeNav === "Support") return <SupportTicketSystem viewAs="user" />;
 
     // Settings for all roles
     if (activeNav === "Settings") {
-      if (role === "admin") return <AdminSettings />;
+      if (role === "admin" || role === "super_admin") return <AdminSettings />;
       return <ProfileSettings role={role} />;
     }
 
@@ -211,7 +211,7 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        {role === "admin" && <div className="mb-8"><AdminApprovals /></div>}
+        {(role === "admin" || role === "super_admin") && <div className="mb-8"><AdminApprovals /></div>}
 
         {/* Health Tips on student overview */}
         {role === "student" && <div className="mb-8"><HealthTipsLive /></div>}

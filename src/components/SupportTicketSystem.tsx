@@ -52,7 +52,7 @@ interface SupportTicketSystemProps {
 
 const SupportTicketSystem = ({ viewAs = "user" }: SupportTicketSystemProps) => {
   const { user, role } = useAuth();
-  const isAdmin = viewAs === "admin" || role === "admin";
+  const isAdmin = viewAs === "admin" || role === "admin" || role === "super_admin";
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
@@ -82,7 +82,7 @@ const SupportTicketSystem = ({ viewAs = "user" }: SupportTicketSystemProps) => {
       user_id: user.id,
       name: user.user_metadata?.full_name || "User",
       email: user.email || "",
-      role: role || "buyer",
+      role: role || "user",
       category: form.category,
       subject: form.subject,
       message: form.message,

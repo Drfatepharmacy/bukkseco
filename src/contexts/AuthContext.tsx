@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type UserRole = "buyer" | "vendor" | "farmer" | "rider" | "admin";
+type UserRole = "user" | "vendor" | "farmer" | "rider" | "admin" | "super_admin" | "buyer";
 
 interface AuthContextType {
   user: User | null;
@@ -33,26 +33,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch role - use .limit(1) instead of .single() to handle multiple roles
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .limit(1);
-
-      if (roleData && roleData.length > 0) {
-        setRole(roleData[0].role as UserRole);
-      }
-
-      // Fetch approval status
+      // Fetch role and approval status from profiles
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("is_approved")
+        .select("role, is_approved")
         .eq("id", userId)
         .single();
 
       if (profileData) {
+        let fetchedRole = profileData.role as UserRole;
+        // Map 'buyer' to 'user' for frontend consistency if needed
+        if (fetchedRole === "buyer") fetchedRole = "user";
+        setRole(fetchedRole);
         setIsApproved(profileData.is_approved);
+      } else {
+        // Fallback to user_roles if profile not found yet
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .limit(1);
+
+        if (roleData && roleData.length > 0) {
+          let fetchedRole = roleData[0].role as UserRole;
+          if (fetchedRole === "buyer") fetchedRole = "user";
+          setRole(fetchedRole);
+        }
       }
     } catch (err) {
       console.error("Error fetching user data:", err);

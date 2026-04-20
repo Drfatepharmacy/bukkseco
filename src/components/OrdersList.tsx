@@ -17,7 +17,7 @@ const statusSteps = [
   { key: "delivered", label: "Delivered", icon: CheckCircle },
 ];
 
-const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
+const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" | "user" }) => {
   const { user } = useAuth();
   const [reviewOrder, setReviewOrder] = useState<any | null>(null);
 
@@ -29,7 +29,7 @@ const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
         .select("*, order_items(*, meals(name, image_url)), reviews(*)")
         .order("created_at", { ascending: false });
 
-      if (viewAs === "buyer") query = query.eq("buyer_id", user!.id);
+      if (viewAs === "buyer" || viewAs === "user") query = query.eq("buyer_id", user!.id);
       else if (viewAs === "vendor") query = query.eq("vendor_id", user!.id);
       else if (viewAs === "rider") query = query.eq("rider_id", user!.id);
 
@@ -136,7 +136,7 @@ const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
                       {order.payment_status === "paid" ? "💳 Paid" : order.payment_status === "failed" ? "❌ Failed" : "⏳ Pending"}
                     </span>
                   )}
-                  {viewAs === "buyer" && order.status === "delivered" && (
+                  {(viewAs === "buyer" || viewAs === "user") && order.status === "delivered" && (
                     order.reviews && order.reviews.length > 0 ? (
                       <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
                         <Star className="w-2.5 h-2.5 text-primary fill-primary" /> Rated {order.reviews[0].rating}
