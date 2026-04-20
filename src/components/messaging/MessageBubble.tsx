@@ -8,9 +8,8 @@ interface MessageBubbleProps {
     content: string;
     sender_id: string;
     created_at: string;
-    read_by?: string[];
-    attachment_url?: string;
-    attachment_type?: 'image' | 'file';
+    read_at?: string | null;
+    media_url?: string | null;
   };
   otherUserName: string;
   isPrivacyRestricted: boolean;
@@ -19,7 +18,7 @@ interface MessageBubbleProps {
 export const MessageBubble = ({ message, otherUserName, isPrivacyRestricted }: MessageBubbleProps) => {
   const { user: currentUser } = useAuth();
   const isMe = message.sender_id === currentUser?.id;
-  const isRead = message.read_by && message.read_by.length > 0; // Simplified for 1v1
+  const isRead = !!message.read_at;
 
   const displayName = isMe ? "You" : (isPrivacyRestricted ? `User ${message.sender_id.slice(0, 6)}` : otherUserName);
 
@@ -39,18 +38,18 @@ export const MessageBubble = ({ message, otherUserName, isPrivacyRestricted }: M
             : "bg-muted text-foreground rounded-tl-none"
         }`}
       >
-        {message.attachment_url && (
+        {message.media_url && (
           <div className="mb-2">
-            {message.attachment_type === 'image' ? (
+            {message.media_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || message.content === "📎 Attachment" ? (
               <img
-                src={message.attachment_url}
+                src={message.media_url}
                 alt="Attachment"
                 className="max-w-full rounded-lg cursor-pointer"
-                onClick={() => window.open(message.attachment_url, '_blank')}
+                onClick={() => window.open(message.media_url!, '_blank')}
               />
             ) : (
               <a
-                href={message.attachment_url}
+                href={message.media_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 p-2 bg-background/20 rounded-lg hover:bg-background/30 transition-colors"
@@ -62,7 +61,7 @@ export const MessageBubble = ({ message, otherUserName, isPrivacyRestricted }: M
           </div>
         )}
 
-        {message.content && <p className="text-sm whitespace-pre-wrap">{message.content}</p>}
+        {message.content && message.content !== "📎 Attachment" && <p className="text-sm whitespace-pre-wrap">{message.content}</p>}
 
         {isMe && (
           <div className="absolute -bottom-4 right-0">

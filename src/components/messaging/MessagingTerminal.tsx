@@ -79,11 +79,11 @@ export const MessagingTerminal = () => {
     // Mark messages as read when they appear
     if (activeConv && messages.length > 0 && currentUser) {
       const unreadIds = messages
-        .filter(m => m.sender_id !== currentUser.id && (!m.read_by || !m.read_by.includes(currentUser.id)))
+        .filter(m => m.sender_id !== currentUser.id && !m.read_at)
         .map(m => m.id);
 
       if (unreadIds.length > 0) {
-        markAsRead(unreadIds, currentUser.id);
+        markAsRead(unreadIds);
       }
     }
   }, [messages]);
@@ -188,9 +188,8 @@ export const MessagingTerminal = () => {
         .insert({
           room_id: activeConv.id,
           sender_id: currentUser.id,
-          content: newMessage.trim(),
-          attachment_url: attachment?.url,
-          attachment_type: attachment?.type,
+          content: newMessage.trim() || "📎 Attachment",
+          media_url: attachment?.url,
         });
 
       if (error) throw error;
