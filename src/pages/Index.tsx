@@ -59,7 +59,13 @@ const Index = () => {
         </nav>
         <div className="flex items-center gap-3">
           {user ? (
-            <button onClick={() => navigate(`/dashboard/${(role === "buyer" || role === "user") ? "student" : (role === "admin" || role === "super_admin") ? "admin" : role === "vendor" ? "vendor" : role === "rider" ? "rider" : "farmer"}`)} className="btn-gold text-sm px-6 py-2.5">
+            <button
+              onClick={() => {
+                if (role === "super_admin") navigate("/dashboard/super_admin");
+                else navigate(`/dashboard/${(role === "buyer" || role === "user") ? "student" : role === "admin" ? "admin" : role === "vendor" ? "vendor" : role === "rider" ? "rider" : "farmer"}`);
+              }}
+              className="btn-gold text-sm px-6 py-2.5"
+            >
               Dashboard
             </button>
           ) : (

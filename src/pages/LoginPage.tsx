@@ -40,8 +40,15 @@ const LoginPage = () => {
         .single();
 
       const role = roleData?.role || "student";
+
+      if (role === "super_admin") {
+        toast.success("Welcome back, Founder!");
+        navigate("/dashboard/super_admin");
+        return;
+      }
+
       // Map 'buyer' role to 'student' route for dashboard
-      const dashboardRole = (role === "buyer" || role === "user") ? "student" : (role === "super_admin" ? "admin" : role);
+      const dashboardRole = (role === "buyer" || role === "user") ? "student" : role;
       toast.success("Welcome back to BUKKS!");
       navigate(`/dashboard/${dashboardRole}`);
     }

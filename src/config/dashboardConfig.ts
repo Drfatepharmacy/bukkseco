@@ -153,4 +153,32 @@ export const dashboardConfigs: Record<string, {
       { title: "Revenue Growth", data: monthlyRevenue, color: "success" },
     ],
   },
+  super_admin: {
+    label: "Founder Console",
+    stats: [
+      { title: "Total Users", value: 2847, icon: Users, trend: 14, color: "primary" },
+      { title: "Platform Revenue", value: 1250000, prefix: "₦", icon: TrendingUp, trend: 22, color: "success" },
+      { title: "Pending Approvals", value: 15, icon: AlertTriangle, color: "secondary" },
+      { title: "Active Orders", value: 89, icon: Package, trend: 7, color: "primary" },
+    ],
+    navItems: [
+      { label: "Founder Console", icon: Shield },
+      { label: "Overview", icon: LayoutDashboard },
+      { label: "Approve Vendors", icon: CheckCircle },
+      { label: "Approve Farmers", icon: Sprout },
+      { label: "Verify Riders", icon: Bike },
+      { label: "Monitor Orders", icon: Package },
+      { label: "Campus Feed", icon: Megaphone },
+      { label: "Messages", icon: MessageCircle },
+      { label: "Analytics", icon: BarChart3 },
+      { label: "Support Tickets", icon: Ticket },
+      { label: "Disputes", icon: AlertTriangle },
+      { label: "Payouts", icon: Wallet },
+      { label: "Settings", icon: Settings },
+    ],
+    charts: [
+      { title: "Platform Orders", data: weeklyData, color: "primary" },
+      { title: "Revenue Growth", data: monthlyRevenue, color: "success" },
+    ],
+  },
 };

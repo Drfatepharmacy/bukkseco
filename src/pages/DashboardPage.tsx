@@ -15,6 +15,7 @@ import HealthTipsLive from "@/components/HealthTipsLive";
 import RiderDeliverySystem from "@/components/RiderDeliverySystem";
 import TableReservation from "@/components/TableReservation";
 import { MessagingTerminal } from "@/components/messaging/MessagingTerminal";
+import FounderConsolePage from "./FounderConsolePage";
 import { VendorReviews } from "@/components/VendorReviews";
 import { AdminSettings } from "@/components/AdminSettings";
 import FarmerStockManager from "@/components/FarmerStockManager";
@@ -138,6 +139,8 @@ const DashboardPage = () => {
   }));
 
   const renderContent = () => {
+    if (activeNav === "Founder Console") return <FounderConsolePage />;
+
     // Shared: Messages, Campus Feed
     if (activeNav === "Messages") return <MessagingTerminal />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
