@@ -227,3 +227,12 @@ CREATE POLICY "Admins manage reservations" ON public.reservations FOR ALL USING 
 
 DROP POLICY IF EXISTS "Admins manage activities" ON public.campus_activities;
 CREATE POLICY "Admins manage activities" ON public.campus_activities FOR ALL USING (public.is_admin(auth.uid()));
+
+DROP POLICY IF EXISTS "Admins can manage settings" ON public.system_settings;
+CREATE POLICY "Admins can manage settings" ON public.system_settings FOR ALL USING (public.is_admin(auth.uid()));
+
+DROP POLICY IF EXISTS "Admins can view logs" ON public.event_logs;
+CREATE POLICY "Admins can view logs" ON public.event_logs FOR SELECT USING (public.is_admin(auth.uid()));
+
+-- Also ensure super_admin can bypass all RLS (optional but sometimes desired for "founder")
+-- However, using is_admin() in policies is usually enough.
