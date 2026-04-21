@@ -1,7 +1,0 @@
-ALTER TABLE meals
-ADD COLUMN group_buy_enabled BOOLEAN DEFAULT FALSE,
-ADD COLUMN group_buy_min_qty INTEGER DEFAULT 5,
-ADD COLUMN group_buy_discount_percent DECIMAL DEFAULT 10;
-
-ALTER TABLE orders
-ADD COLUMN subtotal DECIMAL;
