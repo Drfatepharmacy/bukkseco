@@ -24,8 +24,29 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
   const { user: currentUser } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
+    const fetchSuggestions = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          avatar_url,
+          username,
+          email,
+          vendor_profiles!left (business_name),
+          user_roles!left (role)
+        `)
+        .neq("id", currentUser?.id)
+        .limit(5);
+
+      if (!error && data) {
+        setResults(data);
+      }
+    };
+
     const delayDebounceFn = setTimeout(async () => {
       if (query.length >= 2) {
         const { data, error } = await supabase
@@ -46,13 +67,15 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
         if (!error && data) {
           setResults(data);
         }
+      } else if (query.length === 0 && isFocused) {
+        fetchSuggestions();
       } else {
         setResults([]);
       }
     }, 400);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [query, currentUser?.id]);
+  }, [query, currentUser?.id, isFocused]);
 
   return (
     <div className="space-y-2 p-2">
@@ -62,11 +85,16 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
           placeholder="Search by name, email or business..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           className="pl-8"
         />
       </div>
-      {results.length > 0 && (
-        <ScrollArea className="h-64 border rounded-md">
+      {results.length > 0 && (isFocused || query.length >= 2) && (
+        <ScrollArea className="h-64 border rounded-md bg-card shadow-lg">
+          <div className="p-2 text-xs font-semibold text-muted-foreground border-b">
+            {query.length >= 2 ? "Search Results" : "Suggested Contacts"}
+          </div>
           {results.map((user) => {
             const businessName = user.vendor_profiles?.[0]?.business_name;
             const role = user.user_roles?.[0]?.role;
