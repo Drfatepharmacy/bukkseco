@@ -1,82 +1,195 @@
-import { dashboardConfigs } from "@/config/dashboardConfig";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import StatCard from "@/components/StatCard";
-import InteractiveChart from "@/components/InteractiveChart";
-import DashboardSidebar from "@/components/DashboardSidebar";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import {
+  ShoppingBag,
+  TrendingUp,
+  Utensils,
+  MessageSquare,
+  ChevronRight,
+  Clock,
+  Star,
+  Zap,
+  ArrowUpRight,
+  Plus
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+
+const data = [
+  { name: '08:00', orders: 4 },
+  { name: '10:00', orders: 7 },
+  { name: '12:00', orders: 15 },
+  { name: '14:00', orders: 12 },
+  { name: '16:00', orders: 8 },
+  { name: '18:00', orders: 20 },
+  { name: '20:00', orders: 14 },
+];
 
 const VendorDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
-  const config = dashboardConfigs.vendor;
 
-  const navItems = config.navItems.map((item) => ({
-    ...item,
-    active: item.label === "Overview",
-    onClick: () => {
-        if (item.label === "Manage Menu") navigate("/vendor/menu");
-        else if (item.label === "Orders") navigate("/vendor/orders");
-        else if (item.label === "Revenue") navigate("/vendor/sales");
+  const { data: profile } = useQuery({
+    queryKey: ["vendor-profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("vendor_profiles")
+        .select("*")
+        .eq("user_id", user?.id)
+        .single();
+      return data;
     },
-  }));
+  });
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <DashboardSidebar
-        items={navItems}
-        role="Vendor"
-        collapsed={collapsed}
-        onToggle={() => setCollapsed(!collapsed)}
-      />
-      <main className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
-        <div className="p-8">
-           <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="font-display text-3xl font-bold text-foreground">Vendor Dashboard</h1>
-              <p className="text-muted-foreground font-body text-sm mt-1">
-                Welcome back, {user?.user_metadata?.full_name || "Vendor"}
-              </p>
-            </div>
-            <Button variant="outline" onClick={() => { signOut(); navigate("/"); }}>Log Out</Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {config.stats.map((stat, i) => (
-              <StatCard key={i} {...stat} />
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-            {config.charts.map((chart, i) => (
-              <InteractiveChart key={i} {...chart} />
-            ))}
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-               <div className="space-y-3">
-                {[
-                  { text: "New order #1247 received", time: "2 min ago", status: "active" },
-                  { text: "Payment of ₦3,500 processed", time: "15 min ago", status: "success" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                    <span className="text-sm font-body text-foreground">{item.text}</span>
-                    <span className="text-xs text-muted-foreground font-body">{item.time}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+    <div className="container px-6 py-12 max-w-7xl mx-auto space-y-12">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
+             Welcome back, <span className="gradient-text">{profile?.business_name || 'Merchant'}</span>
+           </h1>
+           <p className="text-muted-foreground font-body">Your kitchen is currently <span className="text-success font-bold">Open</span> and accepting orders.</p>
         </div>
-      </main>
+
+        <div className="flex gap-4">
+           <button
+             onClick={() => navigate("/vendor/menu")}
+             className="btn-gold h-14 px-8 flex items-center gap-2"
+           >
+              <Plus className="w-5 h-5" />
+              Add New Item
+           </button>
+        </div>
+      </header>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+         {[
+           { label: "Today's Revenue", value: "₦42,500", trend: "+18%", icon: TrendingUp, color: "text-success" },
+           { label: "Active Orders", value: "12", trend: "Normal", icon: ShoppingBag, color: "text-primary" },
+           { label: "Avg. Prep Time", value: "14 min", trend: "-2m", icon: Clock, color: "text-purple" },
+         ].map((stat, i) => (
+           <motion.div
+             key={i}
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: i * 0.1 }}
+             className="premium-card p-8 group"
+           >
+             <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
+                   <stat.icon className="w-6 h-6" />
+                </div>
+                <div className="text-xs font-bold px-2 py-1 bg-muted rounded-lg opacity-60">{stat.trend}</div>
+             </div>
+             <div className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</div>
+             <div className="text-4xl font-bold">{stat.value}</div>
+           </motion.div>
+         ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Orders Flow Chart */}
+        <div className="lg:col-span-2 premium-card p-8">
+           <div className="flex items-center justify-between mb-12">
+              <h3 className="text-2xl font-bold tracking-tight">Orders Flow</h3>
+              <select className="bg-muted border-none rounded-lg text-sm font-bold px-4 py-2 outline-none">
+                 <option>Today</option>
+                 <option>Yesterday</option>
+              </select>
+           </div>
+
+           <div className="h-[300px] w-full">
+             <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
+                  <Tooltip
+                    cursor={{fill: 'hsl(var(--muted)/0.3)'}}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '12px', border: '1px solid hsl(var(--border))' }}
+                  />
+                  <Bar dataKey="orders" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                </BarChart>
+             </ResponsiveContainer>
+           </div>
+        </div>
+
+        {/* AI Growth Suggestions */}
+        <div className="premium-card p-8 bg-secondary text-white border-none overflow-hidden relative">
+           <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Zap className="w-48 h-48" />
+           </div>
+
+           <div className="relative z-10">
+              <h3 className="text-2xl font-bold tracking-tight mb-8 flex items-center gap-2">
+                 <Zap className="w-6 h-6 text-primary fill-primary" />
+                 AI Growth Tips
+              </h3>
+
+              <div className="space-y-6">
+                 <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                    <h4 className="font-bold mb-2">Demand Peak Alert</h4>
+                    <p className="text-sm text-white/60">Jollof Rice demand usually spikes at 12:30 PM. Prep extra 10 portions today?</p>
+                 </div>
+
+                 <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                    <h4 className="font-bold mb-2">Top Combo Suggestion</h4>
+                    <p className="text-sm text-white/60">Customers often buy Fried Rice with extra Plantain. Try creating a "Student Combo" for 10% off.</p>
+                 </div>
+              </div>
+
+              <button className="w-full mt-8 py-4 bg-white text-secondary font-bold rounded-xl hover:scale-105 transition-transform">
+                 View Marketing Suite
+              </button>
+           </div>
+        </div>
+      </div>
+
+      {/* Recent Orders List */}
+      <div className="space-y-6">
+         <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-bold tracking-tight">Live Orders</h3>
+            <button
+              onClick={() => navigate("/vendor/orders")}
+              className="text-primary font-bold flex items-center gap-2"
+            >
+               Order Center <ChevronRight className="w-4 h-4" />
+            </button>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2].map((order) => (
+              <div key={order} className="premium-card p-6 flex items-center justify-between">
+                 <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-2xl">
+                       🥡
+                    </div>
+                    <div>
+                       <div className="flex items-center gap-3 mb-1">
+                          <h5 className="font-bold">#ORD-2849</h5>
+                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded">Preparing</span>
+                       </div>
+                       <p className="text-sm text-muted-foreground font-body">2x Chicken Jollof • ₦5,000</p>
+                    </div>
+                 </div>
+                 <button className="h-12 w-12 rounded-xl bg-dark text-white flex items-center justify-center hover:bg-primary hover:text-dark transition-colors">
+                    <ChevronRight className="w-6 h-6" />
+                 </button>
+              </div>
+            ))}
+         </div>
+      </div>
     </div>
   );
 };
