@@ -86,11 +86,7 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
     enabled: !!user && !!role,
     retry: 0,
   });
-      }
-    },
-    enabled: !!user && !!role,
-    retry: 1
-  });
+
 
   if (loading) {
     return (
