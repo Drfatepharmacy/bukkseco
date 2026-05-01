@@ -993,7 +993,16 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "buyer" | "vendor" | "farmer" | "rider" | "admin"
+      app_role:
+        | "buyer"
+        | "vendor"
+        | "farmer"
+        | "rider"
+        | "admin"
+        | "super_admin"
+        | "tenant_admin"
+        | "support_agent"
+        | "vendor_staff"
       chat_room_type: "direct" | "group"
       delivery_status:
         | "searching"
@@ -1139,7 +1148,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["buyer", "vendor", "farmer", "rider", "admin"],
+      app_role: [
+        "buyer",
+        "vendor",
+        "farmer",
+        "rider",
+        "admin",
+        "super_admin",
+        "tenant_admin",
+        "support_agent",
+        "vendor_staff",
+      ],
       chat_room_type: ["direct", "group"],
       delivery_status: [
         "searching",
