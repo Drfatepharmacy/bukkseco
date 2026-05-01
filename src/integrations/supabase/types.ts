@@ -393,12 +393,6 @@ export type Database = {
           stock_quantity: number | null
           updated_at: string
           vendor_id: string
-          unit: string | null
-          requires_takeaway: boolean | null
-          takeaway_unit_type: string | null
-          group_buy_enabled: boolean | null
-          group_buy_min_qty: number | null
-          group_buy_discount_percent: number | null
         }
         Insert: {
           category?: string | null
@@ -414,12 +408,6 @@ export type Database = {
           stock_quantity?: number | null
           updated_at?: string
           vendor_id: string
-          unit?: string | null
-          requires_takeaway?: boolean | null
-          takeaway_unit_type?: string | null
-          group_buy_enabled?: boolean | null
-          group_buy_min_qty?: number | null
-          group_buy_discount_percent?: number | null
         }
         Update: {
           category?: string | null
@@ -435,12 +423,6 @@ export type Database = {
           stock_quantity?: number | null
           updated_at?: string
           vendor_id?: string
-          unit?: string | null
-          requires_takeaway?: boolean | null
-          takeaway_unit_type?: string | null
-          group_buy_enabled?: boolean | null
-          group_buy_min_qty?: number | null
-          group_buy_discount_percent?: number | null
         }
         Relationships: []
       }
@@ -538,7 +520,6 @@ export type Database = {
           total_amount: number
           updated_at: string
           vendor_id: string
-          subtotal: number | null
         }
         Insert: {
           buyer_id: string
@@ -555,7 +536,6 @@ export type Database = {
           total_amount: number
           updated_at?: string
           vendor_id: string
-          subtotal?: number | null
         }
         Update: {
           buyer_id?: string
@@ -572,7 +552,6 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           vendor_id?: string
-          subtotal?: number | null
         }
         Relationships: []
       }
@@ -969,7 +948,6 @@ export type Database = {
           is_approved: boolean
           kitchen_photos: string[] | null
           user_id: string
-          delivery_multiplier: number | null
         }
         Insert: {
           business_description?: string | null
@@ -980,7 +958,6 @@ export type Database = {
           is_approved?: boolean
           kitchen_photos?: string[] | null
           user_id: string
-          delivery_multiplier?: number | null
         }
         Update: {
           business_description?: string | null
@@ -991,7 +968,6 @@ export type Database = {
           is_approved?: boolean
           kitchen_photos?: string[] | null
           user_id?: string
-          delivery_multiplier?: number | null
         }
         Relationships: []
       }
