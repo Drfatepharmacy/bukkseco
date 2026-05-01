@@ -25,18 +25,30 @@ const AdminOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select(`
-            *,
-            profiles:buyer_id (*),
-            vendor:vendor_id (business_name),
-            order_items (
-                *,
-                meals (*)
-            )
-        `)
+        .select(`*, order_items (*, meals (*))`)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+
+      const buyerIds = Array.from(new Set((data ?? []).map((o: any) => o.buyer_id).filter(Boolean)));
+      const vendorIds = Array.from(new Set((data ?? []).map((o: any) => o.vendor_id).filter(Boolean)));
+
+      const [buyersRes, vendorsRes] = await Promise.all([
+        buyerIds.length
+          ? supabase.from("profiles").select("id, full_name, email, phone").in("id", buyerIds)
+          : Promise.resolve({ data: [] as any[] }),
+        vendorIds.length
+          ? supabase.from("vendor_profiles").select("user_id, business_name").in("user_id", vendorIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const buyerMap = new Map((buyersRes.data ?? []).map((b: any) => [b.id, b]));
+      const vendorMap = new Map((vendorsRes.data ?? []).map((v: any) => [v.user_id, v]));
+
+      return (data ?? []).map((o: any) => ({
+        ...o,
+        profiles: buyerMap.get(o.buyer_id) ?? null,
+        vendor: vendorMap.get(o.vendor_id) ?? null,
+      }));
     },
   });
 

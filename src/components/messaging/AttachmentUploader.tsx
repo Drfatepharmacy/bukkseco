@@ -28,7 +28,7 @@ export const AttachmentUploader = ({ onUploadComplete, onUploadingChange }: Atta
 
     try {
       const attachment = await uploadAttachment(file);
-      onUploadComplete(attachment);
+      onUploadComplete(attachment as { url: string; type: 'image' | 'file'; name: string });
       toast.success("File uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);

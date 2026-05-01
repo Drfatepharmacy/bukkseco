@@ -150,9 +150,6 @@ const VendorStorefrontPage = () => {
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex flex-col">
                         <span className="text-sm font-display font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
-                        {meal.group_buy_enabled && (
-                          <span className="text-[10px] text-primary font-bold">Group Buy Available</span>
-                        )}
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 text-primary fill-primary" />
@@ -226,9 +223,6 @@ const VendorStorefrontPage = () => {
                       <div className="flex items-center justify-between mt-3">
                         <div className="flex flex-col">
                           <span className="font-display text-lg font-bold text-foreground">₦{Number(meal.price).toLocaleString()}</span>
-                          {meal.group_buy_enabled && (
-                            <span className="text-[10px] text-primary font-bold">Group Buy Available</span>
-                          )}
                         </div>
                         <Button onClick={() => addToCart(meal.id)} size="sm" className="btn-gold" disabled={outOfStock}>
                           <Plus className="w-4 h-4 mr-1" /> {outOfStock ? "Sold out" : "Add"}
