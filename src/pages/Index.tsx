@@ -42,7 +42,7 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: "reveal" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-4 py-1.5 mb-8"
             >
               <Zap className="w-4 h-4 text-primary" />
