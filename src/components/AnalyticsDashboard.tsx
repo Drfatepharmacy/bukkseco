@@ -125,6 +125,34 @@ const AnalyticsDashboard = () => {
         .sort((a, b) => a.stock - b.stock)
         .slice(0, 10);
 
+      // Financials — derive from immutable wallet ledger
+      const txList = walletTx || [];
+      const totalDeposits = txList
+        .filter(t => t.type === "deposit")
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const vendorPayouts = txList
+        .filter(t => t.type === "credit" && String(t.reference).endsWith("-VND"))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const riderPayouts = txList
+        .filter(t => t.type === "credit" && String(t.reference).endsWith("-RDR"))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const platformCommission = txList
+        .filter(t => t.type === "credit" && String(t.reference).endsWith("-PLT"))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const totalSettled = vendorPayouts + riderPayouts + platformCommission;
+      const walletFloat = (wallets || []).reduce((s, w) => s + Number(w.balance), 0);
+
+      // Settlements by day-of-week from STL refs
+      const settleDays = Array.from({ length: 7 }, () => ({ vendor: 0, rider: 0, platform: 0 }));
+      txList.forEach(t => {
+        const d = new Date(t.created_at).getDay();
+        const ref = String(t.reference);
+        if (t.type !== "credit") return;
+        if (ref.endsWith("-VND")) settleDays[d].vendor += Number(t.amount);
+        else if (ref.endsWith("-RDR")) settleDays[d].rider += Number(t.amount);
+        else if (ref.endsWith("-PLT")) settleDays[d].platform += Number(t.amount);
+      });
+
       setData({
         totalUsers: totalUsers || 0,
         totalOrders: totalOrders || 0,
