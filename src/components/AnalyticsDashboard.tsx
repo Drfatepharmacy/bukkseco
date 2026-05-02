@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3, Users, TrendingUp, Package, Truck, Clock, AlertTriangle,
-  RefreshCw, ChefHat, Star, ArrowUpRight, ArrowDownRight, Activity
+  RefreshCw, ChefHat, Star, ArrowUpRight, ArrowDownRight, Activity, Wallet, Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,12 +25,21 @@ interface AnalyticsData {
   topMeals: { name: string; orders: number; revenue: number }[];
   deliveryMetrics: { avgTime: number; successRate: number; totalDeliveries: number };
   lowStockItems: { name: string; stock: number; vendor_id: string }[];
+  financials: {
+    totalDeposits: number;
+    totalSettled: number;
+    vendorPayouts: number;
+    riderPayouts: number;
+    platformCommission: number;
+    walletFloat: number;
+    settlementsByDay: { name: string; vendor: number; rider: number; platform: number }[];
+  };
 }
 
 const AnalyticsDashboard = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"overview" | "sales" | "delivery" | "inventory">("overview");
+  const [tab, setTab] = useState<"overview" | "sales" | "delivery" | "inventory" | "financials">("overview");
 
   const loadAll = async () => {
     setLoading(true);
@@ -47,6 +56,8 @@ const AnalyticsDashboard = () => {
         { data: deliveries },
         { data: orderItems },
         { data: meals },
+        { data: walletTx },
+        { data: wallets },
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("*", { count: "exact", head: true }),
@@ -59,6 +70,8 @@ const AnalyticsDashboard = () => {
         supabase.from("delivery_assignments").select("created_at, accepted_at, delivered_at, status"),
         supabase.from("order_items").select("meal_id, quantity, unit_price"),
         supabase.from("meals").select("id, name, stock_quantity, vendor_id"),
+        supabase.from("wallet_transactions").select("type, amount, reference, created_at, metadata"),
+        supabase.from("wallets").select("balance"),
       ]);
 
       const totalRevenue = orders?.reduce((s, o) => s + Number(o.total_amount), 0) || 0;
@@ -112,6 +125,34 @@ const AnalyticsDashboard = () => {
         .sort((a, b) => a.stock - b.stock)
         .slice(0, 10);
 
+      // Financials — derive from immutable wallet ledger
+      const txList = walletTx || [];
+      const totalDeposits = txList
+        .filter(t => t.type === "deposit")
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const vendorPayouts = txList
+        .filter(t => t.type === "credit" && String(t.reference).endsWith("-VND"))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const riderPayouts = txList
+        .filter(t => t.type === "credit" && String(t.reference).endsWith("-RDR"))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const platformCommission = txList
+        .filter(t => t.type === "credit" && String(t.reference).endsWith("-PLT"))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const totalSettled = vendorPayouts + riderPayouts + platformCommission;
+      const walletFloat = (wallets || []).reduce((s, w) => s + Number(w.balance), 0);
+
+      // Settlements by day-of-week from STL refs
+      const settleDays = Array.from({ length: 7 }, () => ({ vendor: 0, rider: 0, platform: 0 }));
+      txList.forEach(t => {
+        const d = new Date(t.created_at).getDay();
+        const ref = String(t.reference);
+        if (t.type !== "credit") return;
+        if (ref.endsWith("-VND")) settleDays[d].vendor += Number(t.amount);
+        else if (ref.endsWith("-RDR")) settleDays[d].rider += Number(t.amount);
+        else if (ref.endsWith("-PLT")) settleDays[d].platform += Number(t.amount);
+      });
+
       setData({
         totalUsers: totalUsers || 0,
         totalOrders: totalOrders || 0,
@@ -136,6 +177,15 @@ const AnalyticsDashboard = () => {
           totalDeliveries: deliveries?.length || 0,
         },
         lowStockItems,
+        financials: {
+          totalDeposits,
+          totalSettled,
+          vendorPayouts,
+          riderPayouts,
+          platformCommission,
+          walletFloat,
+          settlementsByDay: days.map((name, i) => ({ name, ...settleDays[i] })),
+        },
       });
     } catch (err) {
       console.error("Analytics error:", err);
@@ -168,6 +218,7 @@ const AnalyticsDashboard = () => {
     { key: "sales" as const, label: "Sales" },
     { key: "delivery" as const, label: "Delivery" },
     { key: "inventory" as const, label: "Inventory" },
+    { key: "financials" as const, label: "Financials" },
   ];
 
   return (
@@ -364,6 +415,48 @@ const AnalyticsDashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {tab === "financials" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: "Wallet Float", value: data.financials.walletFloat, icon: Wallet, color: "primary" },
+              { label: "Top-ups", value: data.financials.totalDeposits, icon: ArrowDownRight, color: "success" },
+              { label: "Settled", value: data.financials.totalSettled, icon: ArrowUpRight, color: "secondary" },
+              { label: "Vendor Payouts", value: data.financials.vendorPayouts, icon: ChefHat, color: "primary" },
+              { label: "Rider Payouts", value: data.financials.riderPayouts, icon: Truck, color: "secondary" },
+              { label: "Platform Commission", value: data.financials.platformCommission, icon: Coins, color: "success" },
+            ].map((k, i) => (
+              <div key={i} className="glass-card p-4">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${k.color}/10 mb-2`}>
+                  <k.icon className={`w-4 h-4 text-${k.color}`} />
+                </div>
+                <p className="text-lg font-display font-bold text-foreground">₦{Math.round(k.value).toLocaleString()}</p>
+                <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">{k.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="glass-card p-5">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-4">Settlements by Day (₦)</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={data.financials.settlementsByDay}>
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={v => `₦${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => `₦${v.toLocaleString()}`} />
+                <Bar dataKey="vendor" stackId="s" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="rider" stackId="s" fill="hsl(var(--secondary))" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="platform" stackId="s" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="flex gap-4 mt-3 text-xs font-body">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-primary" /> Vendor</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-secondary" /> Rider</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-success" /> Platform</span>
+            </div>
           </div>
         </div>
       )}
