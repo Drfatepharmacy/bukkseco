@@ -247,6 +247,45 @@ const WalletPage = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={topupOpen} onOpenChange={setTopupOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add money to your wallet</DialogTitle>
+            <DialogDescription>
+              Securely funded via Paystack. Funds appear instantly after payment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="topup-amount">Amount (₦)</Label>
+              <Input
+                id="topup-amount"
+                type="number"
+                min={100}
+                step={100}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[500, 1000, 2000, 5000, 10000].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setAmount(String(v))}
+                  className="px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-muted transition"
+                >
+                  ₦{v.toLocaleString()}
+                </button>
+              ))}
+            </div>
+            <Button onClick={handleTopup} disabled={submitting} className="w-full h-12">
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : `Pay ₦${Number(amount || 0).toLocaleString()}`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
