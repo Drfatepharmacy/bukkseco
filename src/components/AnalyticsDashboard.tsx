@@ -56,6 +56,8 @@ const AnalyticsDashboard = () => {
         { data: deliveries },
         { data: orderItems },
         { data: meals },
+        { data: walletTx },
+        { data: wallets },
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("*", { count: "exact", head: true }),
@@ -68,6 +70,8 @@ const AnalyticsDashboard = () => {
         supabase.from("delivery_assignments").select("created_at, accepted_at, delivered_at, status"),
         supabase.from("order_items").select("meal_id, quantity, unit_price"),
         supabase.from("meals").select("id, name, stock_quantity, vendor_id"),
+        supabase.from("wallet_transactions").select("type, amount, reference, created_at, metadata"),
+        supabase.from("wallets").select("balance"),
       ]);
 
       const totalRevenue = orders?.reduce((s, o) => s + Number(o.total_amount), 0) || 0;
