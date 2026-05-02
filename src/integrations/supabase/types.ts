@@ -1421,6 +1421,10 @@ export type Database = {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
       }
+      settle_order_payment: {
+        Args: { _buyer_id: string; _order_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
