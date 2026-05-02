@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3, Users, TrendingUp, Package, Truck, Clock, AlertTriangle,
-  RefreshCw, ChefHat, Star, ArrowUpRight, ArrowDownRight, Activity
+  RefreshCw, ChefHat, Star, ArrowUpRight, ArrowDownRight, Activity, Wallet, Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,12 +25,21 @@ interface AnalyticsData {
   topMeals: { name: string; orders: number; revenue: number }[];
   deliveryMetrics: { avgTime: number; successRate: number; totalDeliveries: number };
   lowStockItems: { name: string; stock: number; vendor_id: string }[];
+  financials: {
+    totalDeposits: number;
+    totalSettled: number;
+    vendorPayouts: number;
+    riderPayouts: number;
+    platformCommission: number;
+    walletFloat: number;
+    settlementsByDay: { name: string; vendor: number; rider: number; platform: number }[];
+  };
 }
 
 const AnalyticsDashboard = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"overview" | "sales" | "delivery" | "inventory">("overview");
+  const [tab, setTab] = useState<"overview" | "sales" | "delivery" | "inventory" | "financials">("overview");
 
   const loadAll = async () => {
     setLoading(true);
