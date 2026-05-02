@@ -418,6 +418,48 @@ const AnalyticsDashboard = () => {
           </div>
         </div>
       )}
+
+      {tab === "financials" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: "Wallet Float", value: data.financials.walletFloat, icon: Wallet, color: "primary" },
+              { label: "Top-ups", value: data.financials.totalDeposits, icon: ArrowDownRight, color: "success" },
+              { label: "Settled", value: data.financials.totalSettled, icon: ArrowUpRight, color: "secondary" },
+              { label: "Vendor Payouts", value: data.financials.vendorPayouts, icon: ChefHat, color: "primary" },
+              { label: "Rider Payouts", value: data.financials.riderPayouts, icon: Truck, color: "secondary" },
+              { label: "Platform Commission", value: data.financials.platformCommission, icon: Coins, color: "success" },
+            ].map((k, i) => (
+              <div key={i} className="glass-card p-4">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${k.color}/10 mb-2`}>
+                  <k.icon className={`w-4 h-4 text-${k.color}`} />
+                </div>
+                <p className="text-lg font-display font-bold text-foreground">₦{Math.round(k.value).toLocaleString()}</p>
+                <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">{k.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="glass-card p-5">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-4">Settlements by Day (₦)</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={data.financials.settlementsByDay}>
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={v => `₦${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => `₦${v.toLocaleString()}`} />
+                <Bar dataKey="vendor" stackId="s" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="rider" stackId="s" fill="hsl(var(--secondary))" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="platform" stackId="s" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="flex gap-4 mt-3 text-xs font-body">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-primary" /> Vendor</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-secondary" /> Rider</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-success" /> Platform</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
