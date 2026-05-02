@@ -8,16 +8,64 @@ import {
   CreditCard,
   Smartphone,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const WalletPage = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [topupOpen, setTopupOpen] = useState(false);
+  const [amount, setAmount] = useState<string>("1000");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Verify Paystack reference on return from checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("reference") || params.get("trxref");
+    if (!reference || !user) return;
+    (async () => {
+      const { data, error } = await supabase.functions.invoke("wallet-topup", {
+        body: { action: "verify", reference },
+      });
+      if (error || data?.status === "failed") {
+        toast.error("Top-up failed", { description: data?.message || error?.message });
+      } else {
+        toast.success("Wallet credited", { description: `New balance ₦${Number(data?.balance || 0).toLocaleString()}` });
+        queryClient.invalidateQueries({ queryKey: ["wallet"] });
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      }
+      window.history.replaceState({}, "", "/wallet");
+    })();
+  }, [user, queryClient]);
+
+  const handleTopup = async () => {
+    const ngn = Number(amount);
+    if (!ngn || ngn < 100) {
+      toast.error("Minimum top-up is ₦100");
+      return;
+    }
+    setSubmitting(true);
+    const { data, error } = await supabase.functions.invoke("wallet-topup", {
+      body: { action: "initialize", amount: ngn },
+    });
+    setSubmitting(false);
+    if (error || !data?.authorization_url) {
+      toast.error("Could not start payment", { description: error?.message || data?.error });
+      return;
+    }
+    window.location.href = data.authorization_url;
+  };
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["wallet", user?.id],
@@ -85,11 +133,14 @@ const WalletPage = () => {
               </div>
 
               <div className="flex flex-wrap gap-4">
-                 <button className="btn-gold px-10 h-16 text-lg flex items-center gap-2">
+                 <button onClick={() => setTopupOpen(true)} className="btn-gold px-10 h-16 text-lg flex items-center gap-2">
                    <Plus className="w-5 h-5" />
                    Add Money
                  </button>
-                 <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold rounded-xl px-10 h-16 text-lg transition-all">
+                 <button
+                   onClick={() => toast.info("Wallet-to-wallet transfer launching soon")}
+                   className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold rounded-xl px-10 h-16 text-lg transition-all"
+                 >
                    Transfer
                  </button>
               </div>
