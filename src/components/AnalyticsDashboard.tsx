@@ -177,6 +177,15 @@ const AnalyticsDashboard = () => {
           totalDeliveries: deliveries?.length || 0,
         },
         lowStockItems,
+        financials: {
+          totalDeposits,
+          totalSettled,
+          vendorPayouts,
+          riderPayouts,
+          platformCommission,
+          walletFloat,
+          settlementsByDay: days.map((name, i) => ({ name, ...settleDays[i] })),
+        },
       });
     } catch (err) {
       console.error("Analytics error:", err);
@@ -209,6 +218,7 @@ const AnalyticsDashboard = () => {
     { key: "sales" as const, label: "Sales" },
     { key: "delivery" as const, label: "Delivery" },
     { key: "inventory" as const, label: "Inventory" },
+    { key: "financials" as const, label: "Financials" },
   ];
 
   return (
