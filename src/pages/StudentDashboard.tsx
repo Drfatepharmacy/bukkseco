@@ -44,6 +44,14 @@ const StudentDashboard = () => {
         </div>
       </header>
 
+      {/* Buyer KPI strip — shared visual language */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard label="Wallet" value="12,450" prefix="₦" icon={Wallet} tone="gold" delay={0} />
+        <KpiCard label="Cashback" value="2,400" prefix="₦" icon={Coins} tone="success" delay={0.05} />
+        <KpiCard label="Orders" value="34" icon={ShoppingBag} tone="primary" delay={0.1} />
+        <KpiCard label="Saved (Group)" value="3,200" prefix="₦" icon={TrendingUp} tone="purple" delay={0.15} />
+      </div>
+
       {/* Quick Access Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
          <motion.div
