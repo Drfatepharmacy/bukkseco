@@ -109,6 +109,47 @@ const WalletPage = () => {
         </div>
       </header>
 
+      {/* KPI Strip — shared visual language with AnalyticsDashboard */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+        <KpiCard
+          label="Available Balance"
+          value={Number(wallet?.balance || 0).toLocaleString()}
+          prefix="₦"
+          icon={Wallet}
+          tone="gold"
+          delay={0}
+        />
+        <KpiCard
+          label="Total Funded"
+          value={(transactions || [])
+            .filter((t: any) => t.type === "deposit")
+            .reduce((s: number, t: any) => s + Number(t.amount), 0)
+            .toLocaleString()}
+          prefix="₦"
+          icon={Coins}
+          tone="success"
+          delay={0.05}
+        />
+        <KpiCard
+          label="Spent"
+          value={(transactions || [])
+            .filter((t: any) => t.type === "debit")
+            .reduce((s: number, t: any) => s + Number(t.amount), 0)
+            .toLocaleString()}
+          prefix="₦"
+          icon={ArrowUpRight}
+          tone="destructive"
+          delay={0.1}
+        />
+        <KpiCard
+          label="Transactions"
+          value={(transactions || []).length}
+          icon={TrendingUp}
+          tone="primary"
+          delay={0.15}
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Main Balance Card */}
         <div className="lg:col-span-2 space-y-12">
