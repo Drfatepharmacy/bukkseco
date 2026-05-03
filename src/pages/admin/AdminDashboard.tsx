@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   ShieldCheck,
   Users,
@@ -7,11 +6,9 @@ import {
   CheckCircle2,
   XCircle,
   Search,
-  Filter,
-  MoreHorizontal,
-  ChevronRight
+  Coins,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 const AdminDashboard = () => {
   return (
