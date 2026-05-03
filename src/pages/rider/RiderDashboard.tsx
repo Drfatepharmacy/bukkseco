@@ -1,20 +1,21 @@
 import { motion } from "framer-motion";
 import {
-  Bike,
   MapPin,
   Navigation,
-  CreditCard,
   Clock,
   CheckCircle2,
   Star,
   Zap,
   ArrowRight,
   TrendingUp,
-  AlertCircle
+  Coins,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { SectionCard } from "@/components/ui/section-card";
 
 const RiderDashboard = () => {
   const { user } = useAuth();
