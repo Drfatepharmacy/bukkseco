@@ -31,25 +31,13 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-         {[
-           { label: "Today's Orders", value: "284", trend: "+12", icon: ShoppingBag, color: "text-primary" },
-           { label: "New Vendors", value: "8", trend: "+2", icon: Users, color: "text-success" },
-           { label: "Active Riders", value: "42", trend: "Normal", icon: ShieldCheck, color: "text-purple" },
-           { label: "Open Disputes", value: "3", trend: "-1", icon: AlertTriangle, color: "text-destructive" },
-         ].map((stat, i) => (
-           <div key={i} className="premium-card p-8">
-              <div className="flex items-center justify-between mb-4">
-                 <div className={`w-10 h-10 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
-                    <stat.icon className="w-5 h-5" />
-                 </div>
-                 <span className="text-xs font-bold opacity-40">{stat.trend}</span>
-              </div>
-              <div className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</div>
-              <div className="text-3xl font-bold">{stat.value}</div>
-           </div>
-         ))}
+      {/* Metrics Grid — shared KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <KpiCard label="Today's Orders" value="284" icon={ShoppingBag} tone="primary" trend="+12" delay={0} />
+        <KpiCard label="Revenue" value="184,200" prefix="₦" icon={Coins} tone="success" trend="+₦18k" delay={0.05} />
+        <KpiCard label="New Vendors" value="8" icon={Users} tone="success" trend="+2" delay={0.1} />
+        <KpiCard label="Active Riders" value="42" icon={ShieldCheck} tone="purple" trend="Normal" delay={0.15} />
+        <KpiCard label="Open Disputes" value="3" icon={AlertTriangle} tone="destructive" trend="-1" delay={0.2} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
