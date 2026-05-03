@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import {
-  ShoppingBag,
   Wallet,
   Star,
   Clock,
@@ -8,12 +7,16 @@ import {
   Search,
   MapPin,
   TrendingUp,
-  Zap
+  Zap,
+  ArrowUpRight,
+  Coins,
+  ShoppingBag,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -144,22 +147,5 @@ const StudentDashboard = () => {
   );
 };
 
-// Internal utility for icon in StudentDashboard
-const ArrowUpRight = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M7 17L17 7"/><polyline points="7 7 17 7 17 17"/>
-  </svg>
-);
 
 export default StudentDashboard;
