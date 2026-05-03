@@ -2,19 +2,18 @@ import { motion } from "framer-motion";
 import {
   ShoppingBag,
   TrendingUp,
-  Utensils,
-  MessageSquare,
   ChevronRight,
   Clock,
-  Star,
   Zap,
-  ArrowUpRight,
-  Plus
+  Plus,
+  Coins,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { SectionCard } from "@/components/ui/section-card";
 import {
   BarChart,
   Bar,
@@ -72,44 +71,27 @@ const VendorDashboard = () => {
         </div>
       </header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-         {[
-           { label: "Today's Revenue", value: "₦42,500", trend: "+18%", icon: TrendingUp, color: "text-success" },
-           { label: "Active Orders", value: "12", trend: "Normal", icon: ShoppingBag, color: "text-primary" },
-           { label: "Avg. Prep Time", value: "14 min", trend: "-2m", icon: Clock, color: "text-purple" },
-         ].map((stat, i) => (
-           <motion.div
-             key={i}
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: i * 0.1 }}
-             className="premium-card p-8 group"
-           >
-             <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
-                   <stat.icon className="w-6 h-6" />
-                </div>
-                <div className="text-xs font-bold px-2 py-1 bg-muted rounded-lg opacity-60">{stat.trend}</div>
-             </div>
-             <div className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</div>
-             <div className="text-4xl font-bold">{stat.value}</div>
-           </motion.div>
-         ))}
+      {/* KPI Grid — shared UI from AnalyticsDashboard */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard label="Today's Revenue" value="42,500" prefix="₦" icon={Coins} tone="success" trend="+18%" delay={0} />
+        <KpiCard label="Active Orders" value="12" icon={ShoppingBag} tone="primary" trend="Normal" delay={0.05} />
+        <KpiCard label="Avg. Prep Time" value="14m" icon={Clock} tone="purple" trend="-2m" delay={0.1} />
+        <KpiCard label="Trend" value="+18%" icon={TrendingUp} tone="gold" trend="vs last wk" delay={0.15} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Orders Flow Chart */}
-        <div className="lg:col-span-2 premium-card p-8">
-           <div className="flex items-center justify-between mb-12">
-              <h3 className="text-2xl font-bold tracking-tight">Orders Flow</h3>
-              <select className="bg-muted border-none rounded-lg text-sm font-bold px-4 py-2 outline-none">
-                 <option>Today</option>
-                 <option>Yesterday</option>
-              </select>
-           </div>
-
-           <div className="h-[300px] w-full">
+        <SectionCard
+          title="Orders Flow"
+          className="lg:col-span-2"
+          action={
+            <select className="bg-muted border-none rounded-lg text-xs font-body px-3 py-1.5 outline-none">
+              <option>Today</option>
+              <option>Yesterday</option>
+            </select>
+          }
+        >
+           <div className="h-[260px] w-full">
              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
