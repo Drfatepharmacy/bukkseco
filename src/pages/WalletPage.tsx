@@ -9,7 +9,9 @@ import {
   Smartphone,
   ShieldCheck,
   ChevronRight,
-  Loader2
+  Loader2,
+  Coins,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,8 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 const WalletPage = () => {
   const { user } = useAuth();
@@ -105,6 +108,47 @@ const WalletPage = () => {
           <span className="text-xs font-bold uppercase tracking-wider">Secure Encrypted</span>
         </div>
       </header>
+
+      {/* KPI Strip — shared visual language with AnalyticsDashboard */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+        <KpiCard
+          label="Available Balance"
+          value={Number(wallet?.balance || 0).toLocaleString()}
+          prefix="₦"
+          icon={Wallet}
+          tone="gold"
+          delay={0}
+        />
+        <KpiCard
+          label="Total Funded"
+          value={(transactions || [])
+            .filter((t: any) => t.type === "deposit")
+            .reduce((s: number, t: any) => s + Number(t.amount), 0)
+            .toLocaleString()}
+          prefix="₦"
+          icon={Coins}
+          tone="success"
+          delay={0.05}
+        />
+        <KpiCard
+          label="Spent"
+          value={(transactions || [])
+            .filter((t: any) => t.type === "debit")
+            .reduce((s: number, t: any) => s + Number(t.amount), 0)
+            .toLocaleString()}
+          prefix="₦"
+          icon={ArrowUpRight}
+          tone="destructive"
+          delay={0.1}
+        />
+        <KpiCard
+          label="Transactions"
+          value={(transactions || []).length}
+          icon={TrendingUp}
+          tone="primary"
+          delay={0.15}
+        />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Main Balance Card */}

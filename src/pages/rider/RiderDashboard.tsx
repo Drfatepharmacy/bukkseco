@@ -1,20 +1,21 @@
 import { motion } from "framer-motion";
 import {
-  Bike,
   MapPin,
   Navigation,
-  CreditCard,
   Clock,
   CheckCircle2,
   Star,
   Zap,
   ArrowRight,
   TrendingUp,
-  AlertCircle
+  Coins,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { SectionCard } from "@/components/ui/section-card";
 
 const RiderDashboard = () => {
   const { user } = useAuth();
@@ -48,22 +49,13 @@ const RiderDashboard = () => {
          </button>
       </div>
 
-      {/* Rider Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-         {[
-           { label: "Earnings", value: "₦12,400", icon: CreditCard, color: "text-success" },
-           { label: "Deliveries", value: "148", icon: CheckCircle2, color: "text-primary" },
-           { label: "Rating", value: "4.9", icon: Star, color: "text-gold" },
-           { label: "Avg. Time", value: "12m", icon: Clock, color: "text-purple" },
-         ].map((stat, i) => (
-           <div key={i} className="premium-card p-6 text-center">
-              <div className={`w-10 h-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4 ${stat.color}`}>
-                 <stat.icon className="w-5 h-5" />
-              </div>
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-1">{stat.label}</div>
-              <div className="text-2xl font-bold">{stat.value}</div>
-           </div>
-         ))}
+      {/* Rider KPIs — shared visual language */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <KpiCard label="Earnings" value="12,400" prefix="₦" icon={Coins} tone="success" delay={0} />
+        <KpiCard label="Wallet" value="3,200" prefix="₦" icon={Wallet} tone="gold" delay={0.05} />
+        <KpiCard label="Deliveries" value="148" icon={CheckCircle2} tone="primary" delay={0.1} />
+        <KpiCard label="Rating" value="4.9" icon={Star} tone="gold" delay={0.15} />
+        <KpiCard label="Avg. Time" value="12m" icon={Clock} tone="purple" delay={0.2} />
       </div>
 
       {/* Live Requests / Assignments */}
