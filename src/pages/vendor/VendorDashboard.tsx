@@ -105,7 +105,7 @@ const VendorDashboard = () => {
                 </BarChart>
              </ResponsiveContainer>
            </div>
-        </div>
+        </SectionCard>
 
         {/* AI Growth Suggestions */}
         <div className="premium-card p-8 bg-secondary text-white border-none overflow-hidden relative">
