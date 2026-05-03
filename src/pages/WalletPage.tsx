@@ -9,7 +9,9 @@ import {
   Smartphone,
   ShieldCheck,
   ChevronRight,
-  Loader2
+  Loader2,
+  Coins,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,8 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 const WalletPage = () => {
   const { user } = useAuth();
