@@ -15,6 +15,7 @@ import HealthTipsLive from "@/components/HealthTipsLive";
 import RiderDeliverySystem from "@/components/RiderDeliverySystem";
 import TableReservation from "@/components/TableReservation";
 import { MessagingTerminal } from "@/components/messaging/MessagingTerminal";
+import WalletPanel from "@/components/WalletPanel";
 import { VendorReviews } from "@/components/VendorReviews";
 import { AdminSettings } from "@/components/AdminSettings";
 import FarmerStockManager from "@/components/FarmerStockManager";
@@ -185,6 +186,7 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
     // Shared: Messages, Campus Feed
     if (activeNav === "Messages") return <MessagingTerminal />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
+    if (activeNav === "Wallet") return <WalletPanel />;
 
     // Vendor
     if (role === "vendor" && activeNav === "Manage Menu") return <VendorMenuManager />;
