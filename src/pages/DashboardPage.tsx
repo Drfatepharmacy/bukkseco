@@ -44,7 +44,7 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
   const role = rawRole === "student" ? "student" : rawRole;
   const navigate = useNavigate();
   const { signOut, user, loading } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [activeNav, setActiveNav] = useState("Overview");
 
   const config = dashboardConfigs[role || ""];
@@ -341,7 +341,7 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
         onToggle={() => setCollapsed(!collapsed)}
       />
 
-      <main className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
+      <main className={`transition-all duration-300 ${collapsed ? "ml-0 md:ml-20" : "md:ml-64"}`}>
         <div className="p-8">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
