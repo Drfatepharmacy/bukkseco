@@ -25,17 +25,13 @@ const AdminVendors = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vendor_profiles")
-        .select("*")
+        .select(`
+            *,
+            profiles (*)
+        `)
         .order("created_at", { ascending: false });
       if (error) throw error;
-
-      const userIds = Array.from(new Set((data ?? []).map((v: any) => v.user_id).filter(Boolean)));
-      const profilesRes = userIds.length
-        ? await supabase.from("profiles").select("id, email, phone, city, state").in("id", userIds)
-        : { data: [] as any[] };
-      const pMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
-
-      return (data ?? []).map((v: any) => ({ ...v, profiles: pMap.get(v.user_id) ?? null }));
+      return data;
     },
   });
 

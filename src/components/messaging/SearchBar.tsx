@@ -10,9 +10,10 @@ interface SearchResult {
   id: string;
   full_name: string;
   avatar_url: string | null;
+  username: string | null;
   email: string;
-  vendor_profiles?: { business_name: string }[];
-  user_roles?: { role: string }[];
+  vendor_profiles: { business_name: string }[];
+  user_roles: { role: string }[];
 }
 
 interface SearchBarProps {
@@ -26,49 +27,54 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
-    const loadProfiles = async (filter?: string) => {
-      let q = supabase
+    const fetchSuggestions = async () => {
+      const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, email")
-        .neq("id", currentUser?.id ?? "");
+        .select(`
+          id,
+          full_name,
+          avatar_url,
+          username,
+          email,
+          vendor_profiles!left (business_name),
+          user_roles!left (role)
+        `)
+        .neq("id", currentUser?.id)
+        .limit(5);
 
-      if (filter) {
-        q = q.or(`full_name.ilike.%${filter}%,email.ilike.%${filter}%`);
+      if (!error && data) {
+        setResults(data);
       }
-
-      const { data, error } = await q.limit(filter ? 10 : 5);
-      if (error || !data) return;
-
-      // Enrich with vendor business name + role in parallel (best-effort)
-      const ids = data.map((p) => p.id);
-      if (ids.length === 0) {
-        setResults([]);
-        return;
-      }
-      const [vendorsRes, rolesRes] = await Promise.all([
-        supabase.from("vendor_profiles").select("user_id, business_name").in("user_id", ids),
-        supabase.from("user_roles").select("user_id, role").in("user_id", ids),
-      ]);
-      const vMap = new Map<string, string>();
-      (vendorsRes.data ?? []).forEach((v) => vMap.set(v.user_id, v.business_name));
-      const rMap = new Map<string, string>();
-      (rolesRes.data ?? []).forEach((r) => rMap.set(r.user_id, r.role));
-
-      setResults(
-        data.map((p) => ({
-          ...p,
-          vendor_profiles: vMap.get(p.id) ? [{ business_name: vMap.get(p.id)! }] : [],
-          user_roles: rMap.get(p.id) ? [{ role: rMap.get(p.id)! }] : [],
-        }))
-      );
     };
 
-    const t = setTimeout(() => {
-      if (query.length >= 2) loadProfiles(query);
-      else if (query.length === 0 && isFocused) loadProfiles();
-      else setResults([]);
+    const delayDebounceFn = setTimeout(async () => {
+      if (query.length >= 2) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select(`
+            id,
+            full_name,
+            avatar_url,
+            username,
+            email,
+            vendor_profiles!left (business_name),
+            user_roles!left (role)
+          `)
+          .neq("id", currentUser?.id)
+          .or(`username.ilike.%${query}%,full_name.ilike.%${query}%,email.ilike.%${query}%,vendor_profiles.business_name.ilike.%${query}%`)
+          .limit(10);
+
+        if (!error && data) {
+          setResults(data);
+        }
+      } else if (query.length === 0 && isFocused) {
+        fetchSuggestions();
+      } else {
+        setResults([]);
+      }
     }, 400);
-    return () => clearTimeout(t);
+
+    return () => clearTimeout(delayDebounceFn);
   }, [query, currentUser?.id, isFocused]);
 
   return (
@@ -105,16 +111,22 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
                 }}
               >
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={user.avatar_url ?? undefined} />
+                  <AvatarImage src={user.avatar_url} />
                   <AvatarFallback>
-                    {user.full_name?.slice(0, 2).toUpperCase()}
+                    {user.username?.slice(0, 2).toUpperCase() || user.full_name?.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold truncate">{user.full_name}</span>
-                  <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                  <span className="text-sm font-semibold truncate">
+                    {user.full_name || user.username}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </span>
                   {subtitle && (
-                    <span className="text-xs font-medium text-primary truncate">{subtitle}</span>
+                    <span className="text-xs font-medium text-primary truncate">
+                      {subtitle}
+                    </span>
                   )}
                 </div>
               </div>
