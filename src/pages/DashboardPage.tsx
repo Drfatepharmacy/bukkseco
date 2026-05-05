@@ -82,16 +82,16 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
     queryFn: async () => {
       try {
         if (!user) return null;
-        const { data: orders, error: ordersErr } = await supabase.rpc("get_order_chart_data", {
+        const { data: orders, error: ordersErr } = await (supabase.rpc as any)("get_order_chart_data", {
           _user_id: user.id,
           _role: role
-        } as any);
+        });
         if (ordersErr) throw ordersErr;
 
-        const { data: revenue, error: revenueErr } = await supabase.rpc("get_revenue_chart_data", {
+        const { data: revenue, error: revenueErr } = await (supabase.rpc as any)("get_revenue_chart_data", {
           _user_id: user.id,
           _role: role
-        } as any);
+        });
         if (revenueErr) throw revenueErr;
 
         return { orders, revenue };
