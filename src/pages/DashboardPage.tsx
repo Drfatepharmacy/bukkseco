@@ -80,13 +80,29 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
   const { data: chartData, error: chartsError } = useQuery({
     queryKey: ["dashboard-charts", role, user?.id],
     queryFn: async () => {
-      // Chart RPCs not yet provisioned — return empty arrays so the UI degrades gracefully.
-      return { orders: [] as any[], revenue: [] as any[] };
+      try {
+        if (!user) return null;
+        const { data: orders, error: ordersErr } = await supabase.rpc("get_order_chart_data", {
+          _user_id: user.id,
+          _role: role
+        } as any);
+        if (ordersErr) throw ordersErr;
+
+        const { data: revenue, error: revenueErr } = await supabase.rpc("get_revenue_chart_data", {
+          _user_id: user.id,
+          _role: role
+        } as any);
+        if (revenueErr) throw revenueErr;
+
+        return { orders, revenue };
+      } catch (err) {
+        console.error("Error in dashboard charts query:", err);
+        throw err;
+      }
     },
     enabled: !!user && !!role,
-    retry: 0,
+    retry: 1
   });
-
 
   if (loading) {
     return (
