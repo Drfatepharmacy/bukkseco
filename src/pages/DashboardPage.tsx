@@ -342,7 +342,12 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
       />
 
       <main className={`transition-all duration-300 ${collapsed ? "ml-0 md:ml-20" : "md:ml-64"}`}>
-        <div className="p-8">
+        <div className="p-4 md:p-8">
+          {collapsed && (
+            <button onClick={() => setCollapsed(false)} className="md:hidden mb-4 p-2 rounded-lg bg-muted text-foreground" aria-label="Open menu">
+              ☰ Menu
+            </button>
+          )}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
