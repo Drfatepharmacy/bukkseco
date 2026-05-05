@@ -43,7 +43,7 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
         .limit(5);
 
       if (!error && data) {
-        setResults(data);
+        setResults(data as any);
       }
     };
 
@@ -65,7 +65,7 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
           .limit(10);
 
         if (!error && data) {
-          setResults(data);
+          setResults(data as any);
         }
       } else if (query.length === 0 && isFocused) {
         fetchSuggestions();

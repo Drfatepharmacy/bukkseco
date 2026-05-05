@@ -15,6 +15,7 @@ import HealthTipsLive from "@/components/HealthTipsLive";
 import RiderDeliverySystem from "@/components/RiderDeliverySystem";
 import TableReservation from "@/components/TableReservation";
 import { MessagingTerminal } from "@/components/messaging/MessagingTerminal";
+import WalletPanel from "@/components/WalletPanel";
 import { VendorReviews } from "@/components/VendorReviews";
 import { AdminSettings } from "@/components/AdminSettings";
 import FarmerStockManager from "@/components/FarmerStockManager";
@@ -43,7 +44,7 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
   const role = rawRole === "student" ? "student" : rawRole;
   const navigate = useNavigate();
   const { signOut, user, loading } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [activeNav, setActiveNav] = useState("Overview");
 
   const config = dashboardConfigs[role || ""];
@@ -82,16 +83,16 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
     queryFn: async () => {
       try {
         if (!user) return null;
-        const { data: orders, error: ordersErr } = await supabase.rpc("get_order_chart_data", {
+        const { data: orders, error: ordersErr } = await (supabase.rpc as any)("get_order_chart_data", {
           _user_id: user.id,
           _role: role
-        } as any);
+        });
         if (ordersErr) throw ordersErr;
 
-        const { data: revenue, error: revenueErr } = await supabase.rpc("get_revenue_chart_data", {
+        const { data: revenue, error: revenueErr } = await (supabase.rpc as any)("get_revenue_chart_data", {
           _user_id: user.id,
           _role: role
-        } as any);
+        });
         if (revenueErr) throw revenueErr;
 
         return { orders, revenue };
@@ -185,6 +186,7 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
     // Shared: Messages, Campus Feed
     if (activeNav === "Messages") return <MessagingTerminal />;
     if (activeNav === "Campus Feed") return <CampusFeed />;
+    if (activeNav === "Wallet") return <WalletPanel />;
 
     // Vendor
     if (role === "vendor" && activeNav === "Manage Menu") return <VendorMenuManager />;
@@ -339,8 +341,13 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
         onToggle={() => setCollapsed(!collapsed)}
       />
 
-      <main className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
-        <div className="p-8">
+      <main className={`transition-all duration-300 ${collapsed ? "ml-0 md:ml-20" : "md:ml-64"}`}>
+        <div className="p-4 md:p-8">
+          {collapsed && (
+            <button onClick={() => setCollapsed(false)} className="md:hidden mb-4 p-2 rounded-lg bg-muted text-foreground" aria-label="Open menu">
+              ☰ Menu
+            </button>
+          )}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
