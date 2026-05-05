@@ -446,6 +446,9 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          group_buy_discount_percent: number
+          group_buy_enabled: boolean
+          group_buy_min_qty: number
           id: string
           image_url: string | null
           is_available: boolean
@@ -462,6 +465,9 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          group_buy_discount_percent?: number
+          group_buy_enabled?: boolean
+          group_buy_min_qty?: number
           id?: string
           image_url?: string | null
           is_available?: boolean
@@ -478,6 +484,9 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          group_buy_discount_percent?: number
+          group_buy_enabled?: boolean
+          group_buy_min_qty?: number
           id?: string
           image_url?: string | null
           is_available?: boolean
@@ -601,6 +610,7 @@ export type Database = {
           payment_status: string | null
           rider_id: string | null
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number | null
           tenant_id: string | null
           total_amount: number
           updated_at: string
@@ -618,6 +628,7 @@ export type Database = {
           payment_status?: string | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number | null
           tenant_id?: string | null
           total_amount: number
           updated_at?: string
@@ -635,6 +646,7 @@ export type Database = {
           payment_status?: string | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number | null
           tenant_id?: string | null
           total_amount?: number
           updated_at?: string
@@ -714,6 +726,7 @@ export type Database = {
           state: string | null
           tenant_id: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -728,6 +741,7 @@ export type Database = {
           state?: string | null
           tenant_id?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -742,6 +756,7 @@ export type Database = {
           state?: string | null
           tenant_id?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: [
           {
@@ -1181,6 +1196,7 @@ export type Database = {
           business_description: string | null
           business_name: string
           created_at: string
+          delivery_multiplier: number
           food_category: string | null
           id: string
           is_approved: boolean
@@ -1192,6 +1208,7 @@ export type Database = {
           business_description?: string | null
           business_name: string
           created_at?: string
+          delivery_multiplier?: number
           food_category?: string | null
           id?: string
           is_approved?: boolean
@@ -1203,6 +1220,7 @@ export type Database = {
           business_description?: string | null
           business_name?: string
           created_at?: string
+          delivery_multiplier?: number
           food_category?: string | null
           id?: string
           is_approved?: boolean
@@ -1420,6 +1438,10 @@ export type Database = {
       is_chat_participant: {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
+      }
+      mark_messages_as_read: {
+        Args: { message_ids: string[]; user_id: string }
+        Returns: undefined
       }
       settle_order_payment: {
         Args: { _buyer_id: string; _order_id: string }
