@@ -24,7 +24,8 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
+  const isFounder = user.email?.toLowerCase() === "ilomuche@gmail.com";
+  if (allowedRoles && role && !allowedRoles.includes(role) && !(isFounder && allowedRoles.includes("admin"))) {
     return <Navigate to={`/dashboard/${role}`} replace />;
   }
 
