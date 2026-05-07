@@ -1,57 +1,69 @@
 
+## 1. Sidebar layout fix (background ratio preserved)
 
-# Plan: Paystack Payment Integration + Verify Edge Function
+Issue: When sidebar is open on mobile, the backdrop covers the page; when collapsed on desktop the main content's left margin doesn't match the actual sidebar width, breaking the layout ratio.
 
-## Important Security Note
-Your **Paystack secret key** (`sk_live_...`) was shared in chat. Secret keys must never be stored in code. We will store it as a backend secret. The **public key** (`pk_live_...`) is safe to use in frontend code.
+Fix in `DashboardSidebar.tsx` and `DashboardPage.tsx`:
+- On mobile (<768px) the sidebar overlays without shifting `<main>` (margin stays `ml-0`); collapsing slides it fully off-screen so the main content fills 100% width — no leftover gutter.
+- On desktop (≥768px) the sidebar is always visible at either `w-20` (collapsed) or `w-64` (expanded). The main `<main>` margin tracks exactly: `md:ml-20` collapsed / `md:ml-64` expanded. No backdrop on desktop.
+- Keep the click-outside auto-collapse behavior on mobile only.
 
-## What We're Building
+## 2. Multi-step onboarding wizards
 
-1. **Store Paystack secret key** as a backend secret
-2. **Create a `verify-payment` edge function** that verifies Paystack transactions server-side
-3. **Add Paystack checkout to BrowseFood** — when placing an order, open Paystack popup, then verify payment before saving the order
-4. **Add Paystack to Group Buy join flow** — pay group price when joining
-5. **Payment status on orders** — add a `payment_status` and `payment_reference` column to orders table
+Refactor `src/pages/SignupPage.tsx` into a stepper (using a small local `step` state, no new dependency). Steps per role:
 
-## Technical Steps
-
-### Step 1: Add Secret
-Use `add_secret` to store `PAYSTACK_SECRET_KEY` with value `sk_live_46db76c5ff153171075ed9dc5fbe5eed4471f7bb`.
-
-### Step 2: Database Migration
-Add columns to `orders` table:
-```sql
-ALTER TABLE orders ADD COLUMN payment_reference text;
-ALTER TABLE orders ADD COLUMN payment_status text DEFAULT 'pending';
+```text
+Student (3 steps)  : Account → Contact/Location → Review & Submit
+Vendor  (4 steps)  : Account → Business Info → Kitchen Photos + Docs → Pending-Approval screen
+Farmer  (4 steps)  : Account → Farm Info → Produce/Photos → Pending-Approval screen
+Rider   (4 steps)  : Account → Vehicle → License + Profile Photo → Pending-Approval screen
+Admin            : not self-serve (kept disabled — created via founder console)
 ```
 
-### Step 3: Edge Function `verify-payment`
-`supabase/functions/verify-payment/index.ts`:
-- Accepts `{ reference }` in POST body
-- Calls `https://api.paystack.co/transaction/verify/{reference}` with secret key
-- On success: updates order's `payment_status` to `paid`, logs event
-- On failure: logs security event, returns error
-- CORS headers included
+New components:
+- `src/components/signup/StepShell.tsx` — wizard chrome (progress bar, Back/Next, geomorphic styling matching the restored UI).
+- `src/components/signup/FileUploadField.tsx` — drag/drop + preview, uploads to the right bucket via `supabase.storage`.
+- `src/components/signup/PendingApprovalScreen.tsx` — final screen for vendor/farmer/rider with status check and "Go to login".
 
-### Step 4: Update BrowseFood.tsx
-- Install `@paystack/inline-js` (or use the CDN script approach via `react-paystack`)
-- Replace direct order insertion with: create order (status pending) → open Paystack popup → on callback, call `verify-payment` edge function → update order status
-- Public key: `pk_live_efc7f697d85e3814c0eac669cb42221df8cb1ba1`
+Uploads (use existing buckets):
+- vendor kitchen photos → `food-images/vendors/{userId}/kitchen-{n}.jpg` (public, fine for marketing).
+- rider license + farmer farm photos → new private bucket `verification-docs` (only owner + admin can read).
 
-### Step 5: Update GroupBuySection.tsx
-- Add Paystack payment before joining a group buy
-- Amount = group_price from the group buy record
+Persist new fields:
+- `vendor_profiles.kitchen_photos[]` (already exists) populated post-upload.
+- `rider_profiles.license_url` populated post-upload.
+- `farmer_profiles` add nullable `farm_photos text[]` and `farm_size_hectares numeric` (small migration).
 
-### Step 6: Order Status Display
-- Update `OrdersList.tsx` to show payment badge (paid/pending/failed)
+Validation: zod schema per step. Block "Next" until current step valid. Show toast on auth/storage failure and roll back partial inserts when possible.
 
-## Dependencies
-- `react-paystack` npm package (React wrapper for Paystack inline)
+## 3. Founder console for ilomuche@gmail.com
 
-## Files Changed
-- `supabase/functions/verify-payment/index.ts` (new)
-- `src/components/BrowseFood.tsx` (add Paystack checkout flow)
-- `src/components/GroupBuySection.tsx` (add payment on join)
-- `src/components/OrdersList.tsx` (show payment status badge)
-- Database migration for `payment_reference` and `payment_status` columns
+Currently `/founder-console` requires `role === 'admin'` AND a passphrase. Make `ilomuche@gmail.com` a permanent founder:
+- Migration: insert `admin` row in `user_roles` for that user (looked up via `auth.users.email`) if missing.
+- Update `FounderConsolePage.tsx` to bypass the passphrase prompt when `user.email === 'ilomuche@gmail.com'` and auto-`setAuthenticated(true)` on mount.
+- Update `ProtectedRoute` check: also allow founder email through the `allowedRoles=["admin"]` gate even if their role row is still propagating.
 
+## 4. Supabase security linter fixes
+
+From `supabase--linter` results:
+
+- **Function Search Path Mutable (1 fn)**: `prevent_wallet_tx_mutation` is missing `SET search_path`. Recreate with `SET search_path = public`.
+- **Public Bucket Allows Listing (food-images, avatars)**: Replace the broad public `SELECT` policy on `storage.objects` for these buckets with two narrower policies:
+  - `SELECT` allowed only when the request targets a single object name (no prefix listing). Implementation: drop the existing wide policy and add `CREATE POLICY ... FOR SELECT USING (bucket_id IN ('food-images','avatars') AND auth.role() IS NOT NULL OR true)` is still listing-capable — instead split: keep public read on individual objects via signed/public URLs only and **revoke** the listing policy. Concretely: drop existing "Public read" policies on these buckets and add policy `... USING (bucket_id IN ('food-images','avatars') AND name IS NOT NULL)` combined with revoking `LIST` access by removing the policy that matches `bucket_id = 'x'` without name filter. (Practical Supabase pattern: keep buckets public for direct URL fetches but remove the policy that allows listing — done by ensuring no `SELECT` policy returns rows for arbitrary prefixes.)
+- **Public Can Execute SECURITY DEFINER Function (multiple)**: For each definer function not meant to be called by anon (`update_meal_rating`, `handle_new_user`, `prevent_wallet_tx_mutation`, `create_wallet_for_profile`, `generate_rider_display_id`, `generate_ticket_number`, `generate_order_number`, `decrement_meal_stock`, `increment_group_participants`, `mark_messages_as_read`, `settle_order_payment`):
+  - `REVOKE EXECUTE ... FROM PUBLIC, anon`.
+  - `GRANT EXECUTE ... TO authenticated, service_role` only where end-users actually call them (`mark_messages_as_read`, `settle_order_payment`); the rest are trigger-only — leave with no grant.
+- Re-run linter after migration; address any remaining warnings.
+
+## 5. Verification
+
+- Re-run `supabase--linter` and confirm warnings cleared (or documented).
+- Manually walk through each role's signup wizard in preview, confirming uploads land in correct buckets and the post-signup landing screen behaves.
+- Toggle sidebar on mobile + desktop and confirm main content width matches available space (no gutter, no overlap).
+- Log in as `ilomuche@gmail.com` and confirm `/founder-console` opens without passphrase.
+
+## Technical notes
+
+- All schema changes go through a single `supabase--migration` call (new column + role grants + storage policy changes + founder role insert).
+- No new npm packages required (zod, framer-motion already present).
+- Storage policy edits use `storage.objects` (allowed) — no changes to `storage.buckets` schema.

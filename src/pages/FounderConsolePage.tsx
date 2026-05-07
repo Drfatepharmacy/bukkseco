@@ -25,12 +25,24 @@ const FounderConsolePage = () => {
   const [loading, setLoading] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
 
-  // Founder must be admin
+  const isFounder = user?.email?.toLowerCase() === "ilomuche@gmail.com";
+
+  // Founder must be admin (founder email always allowed)
   useEffect(() => {
-    if (role && role !== "admin") {
+    if (role && role !== "admin" && !isFounder) {
       navigate("/");
     }
-  }, [role, navigate]);
+  }, [role, navigate, isFounder]);
+
+  // Auto-authenticate founder
+  useEffect(() => {
+    if (isFounder && !authenticated) {
+      setAuthenticated(true);
+      logEvent("founder_console_access", "Founder auto-authenticated by email");
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFounder]);
 
   const handleFounderAuth = async (e: React.FormEvent) => {
     e.preventDefault();

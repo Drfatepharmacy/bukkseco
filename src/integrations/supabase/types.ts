@@ -263,6 +263,8 @@ export type Database = {
       farmer_profiles: {
         Row: {
           created_at: string
+          farm_photos: string[] | null
+          farm_size_hectares: number | null
           farm_type: string | null
           id: string
           is_approved: boolean
@@ -272,6 +274,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          farm_photos?: string[] | null
+          farm_size_hectares?: number | null
           farm_type?: string | null
           id?: string
           is_approved?: boolean
@@ -281,6 +285,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          farm_photos?: string[] | null
+          farm_size_hectares?: number | null
           farm_type?: string | null
           id?: string
           is_approved?: boolean

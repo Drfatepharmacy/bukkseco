@@ -41,7 +41,7 @@ const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebar
 
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Mobile-only backdrop (never on desktop, never when collapsed) */}
       <AnimatePresence>
         {!collapsed && (
           <motion.div
@@ -59,7 +59,9 @@ const DashboardSidebar = ({ items, role, collapsed, onToggle }: DashboardSidebar
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         className={`fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col z-30 transition-all duration-300 ${
-          collapsed ? "w-20 -translate-x-full md:translate-x-0" : "w-64"
+          collapsed
+            ? "w-20 -translate-x-full md:translate-x-0"
+            : "w-64 translate-x-0"
         }`}
       >
         <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
