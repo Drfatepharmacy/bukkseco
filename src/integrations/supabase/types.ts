@@ -1423,6 +1423,19 @@ export type Database = {
       }
     }
     Functions: {
+      get_order_chart_data: {
+        Args: { _role: string; _user_id: string }
+        Returns: Json
+      }
+      get_recent_activity: {
+        Args: { _role: string; _user_id: string }
+        Returns: Json
+      }
+      get_revenue_chart_data: {
+        Args: { _role: string; _user_id: string }
+        Returns: Json
+      }
+      get_rider_stats: { Args: { _user_id: string }; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

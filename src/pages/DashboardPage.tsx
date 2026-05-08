@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import DashboardSidebar from "@/components/DashboardSidebar";
@@ -33,6 +33,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { usePermissions, browserNotify } from "@/hooks/usePermissions";
+import { useSoundNotification } from "@/hooks/useSoundNotification";
 
 interface DashboardPageProps {
   role?: string;
@@ -47,7 +49,51 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
   const [collapsed, setCollapsed] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [activeNav, setActiveNav] = useState("Overview");
 
+  usePermissions(role);
+  const { playSound } = useSoundNotification();
+
   const config = dashboardConfigs[role || ""];
+
+  // Live recent activity
+  const { data: recentActivity = [] } = useQuery({
+    queryKey: ["recent-activity", role, user?.id],
+    queryFn: async () => {
+      if (!user || !role) return [];
+      const { data, error } = await (supabase.rpc as any)("get_recent_activity", { _user_id: user.id, _role: role });
+      if (error) { console.error(error); return []; }
+      return data || [];
+    },
+    enabled: !!user && !!role,
+    refetchInterval: 30000,
+  });
+
+  // Role-specific realtime sound notifications
+  useEffect(() => {
+    if (!user || !role) return;
+    let channel: any;
+    if (role === "vendor" || role === "farmer") {
+      channel = supabase.channel(`vendor-orders-${user.id}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `vendor_id=eq.${user.id}` }, () => {
+          playSound("order");
+          browserNotify("New order received", "Open your dashboard to confirm");
+        }).subscribe();
+    } else if (role === "rider") {
+      channel = supabase.channel(`rider-offers-${user.id}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "delivery_assignments" }, (p: any) => {
+          if (p.new?.status === "offered") {
+            playSound("delivery");
+            browserNotify("New delivery offer nearby");
+          }
+        }).subscribe();
+    } else if (role === "admin") {
+      channel = supabase.channel(`admin-alerts-${user.id}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_tickets" }, () => {
+          playSound("alert");
+          browserNotify("New support ticket");
+        }).subscribe();
+    }
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, [user, role, playSound]);
 
   const { data: realStats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ["dashboard-stats", role, user?.id],
@@ -302,30 +348,32 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
         >
           <h3 className="font-display text-sm font-semibold text-foreground mb-4">Recent Activity</h3>
           <div className="space-y-3">
-            {[
-              { text: "New order #1247 received", time: "2 min ago", status: "active" },
-              { text: "Payment of ₦3,500 processed", time: "15 min ago", status: "success" },
-              { text: "Delivery completed for order #1245", time: "1 hour ago", status: "done" },
-              { text: "New review received - 5 stars", time: "3 hours ago", status: "info" },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${
-                    item.status === "active" ? "bg-primary animate-pulse" :
-                    item.status === "success" ? "bg-success" :
-                    "bg-muted-foreground"
-                  }`} />
-                  <span className="text-sm font-body text-foreground">{item.text}</span>
-                </div>
-                <span className="text-xs text-muted-foreground font-body">{item.time}</span>
-              </motion.div>
-            ))}
+            {recentActivity.length === 0 ? (
+              <p className="text-xs text-muted-foreground font-body">No recent activity yet.</p>
+            ) : recentActivity.map((item: any, i: number) => {
+              const ts = new Date(item.created_at);
+              const diff = Math.floor((Date.now() - ts.getTime()) / 60000);
+              const time = diff < 1 ? "just now" : diff < 60 ? `${diff} min ago` : diff < 1440 ? `${Math.floor(diff / 60)}h ago` : `${Math.floor(diff / 1440)}d ago`;
+              const status = item.kind?.includes("delivered") ? "done" : item.kind?.includes("paid") ? "success" : "active";
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i }}
+                  className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      status === "active" ? "bg-primary animate-pulse" :
+                      status === "success" ? "bg-success" : "bg-muted-foreground"
+                    }`} />
+                    <span className="text-sm font-body text-foreground">{item.text}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground font-body">{time}</span>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.div>
       </>

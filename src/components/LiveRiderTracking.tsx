@@ -84,6 +84,7 @@ const LiveRiderTracking = () => {
     map.current.addControl(new mapboxgl.NavigationControl(), "bottom-right");
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
 
+    map.current.on("click", () => setSidebarOpen(false));
     map.current.on("load", () => {
       // Path source
       map.current!.addSource("rider-path", {
