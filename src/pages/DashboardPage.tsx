@@ -33,6 +33,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { usePermissions, browserNotify } from "@/hooks/usePermissions";
+import { useSoundNotification } from "@/hooks/useSoundNotification";
 
 interface DashboardPageProps {
   role?: string;
@@ -47,7 +49,51 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
   const [collapsed, setCollapsed] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [activeNav, setActiveNav] = useState("Overview");
 
+  usePermissions(role);
+  const { playSound } = useSoundNotification();
+
   const config = dashboardConfigs[role || ""];
+
+  // Live recent activity
+  const { data: recentActivity = [] } = useQuery({
+    queryKey: ["recent-activity", role, user?.id],
+    queryFn: async () => {
+      if (!user || !role) return [];
+      const { data, error } = await (supabase.rpc as any)("get_recent_activity", { _user_id: user.id, _role: role });
+      if (error) { console.error(error); return []; }
+      return data || [];
+    },
+    enabled: !!user && !!role,
+    refetchInterval: 30000,
+  });
+
+  // Role-specific realtime sound notifications
+  useEffect(() => {
+    if (!user || !role) return;
+    let channel: any;
+    if (role === "vendor" || role === "farmer") {
+      channel = supabase.channel(`vendor-orders-${user.id}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `vendor_id=eq.${user.id}` }, () => {
+          playSound("order");
+          browserNotify("New order received", "Open your dashboard to confirm");
+        }).subscribe();
+    } else if (role === "rider") {
+      channel = supabase.channel(`rider-offers-${user.id}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "delivery_assignments" }, (p: any) => {
+          if (p.new?.status === "offered") {
+            playSound("delivery");
+            browserNotify("New delivery offer nearby");
+          }
+        }).subscribe();
+    } else if (role === "admin") {
+      channel = supabase.channel(`admin-alerts-${user.id}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_tickets" }, () => {
+          playSound("alert");
+          browserNotify("New support ticket");
+        }).subscribe();
+    }
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, [user, role, playSound]);
 
   const { data: realStats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ["dashboard-stats", role, user?.id],
