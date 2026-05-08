@@ -188,15 +188,15 @@ export const MessagingTerminal = () => {
         .insert({
           room_id: activeConv.id,
           sender_id: currentUser.id,
-          content: newMessage.trim(),
-          attachment_url: attachment?.url,
-          attachment_type: attachment?.type,
+          content: newMessage.trim() || (attachment?.type === 'image' ? '📷 Image' : '📎 File'),
+          media_url: attachment?.url ?? null,
         });
 
       if (error) throw error;
       setNewMessage("");
-    } catch (error) {
-      toast.error("Failed to send message");
+    } catch (error: any) {
+      console.error("Send message error:", error);
+      toast.error(error?.message || "Failed to send message");
     } finally {
       setSending(false);
     }

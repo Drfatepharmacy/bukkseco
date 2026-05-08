@@ -27,52 +27,45 @@ export const SearchBar = ({ onUserSelect }: SearchBarProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const baseSelect = `id, full_name, avatar_url, username, email,
+      vendor_profiles!left (business_name),
+      user_roles!left (role)`;
+
     const fetchSuggestions = async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          full_name,
-          avatar_url,
-          username,
-          email,
-          vendor_profiles!left (business_name),
-          user_roles!left (role)
-        `)
-        .neq("id", currentUser?.id)
+        .select(baseSelect)
+        .neq("id", currentUser.id)
         .limit(5);
-
-      if (!error && data) {
-        setResults(data as any);
+      if (error) {
+        console.error("SearchBar suggestion error:", error);
+        return;
       }
+      setResults((data as any) || []);
     };
 
     const delayDebounceFn = setTimeout(async () => {
       if (query.length >= 2) {
+        const q = query.replace(/[%,()]/g, "");
         const { data, error } = await supabase
           .from("profiles")
-          .select(`
-            id,
-            full_name,
-            avatar_url,
-            username,
-            email,
-            vendor_profiles!left (business_name),
-            user_roles!left (role)
-          `)
-          .neq("id", currentUser?.id)
-          .or(`username.ilike.%${query}%,full_name.ilike.%${query}%,email.ilike.%${query}%,vendor_profiles.business_name.ilike.%${query}%`)
+          .select(baseSelect)
+          .neq("id", currentUser.id)
+          .or(`username.ilike.%${q}%,full_name.ilike.%${q}%,email.ilike.%${q}%`)
           .limit(10);
-
-        if (!error && data) {
-          setResults(data as any);
+        if (error) {
+          console.error("SearchBar query error:", error);
+          return;
         }
+        setResults((data as any) || []);
       } else if (query.length === 0 && isFocused) {
         fetchSuggestions();
       } else {
         setResults([]);
       }
-    }, 400);
+    }, 350);
 
     return () => clearTimeout(delayDebounceFn);
   }, [query, currentUser?.id, isFocused]);
