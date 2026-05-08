@@ -348,30 +348,32 @@ const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
         >
           <h3 className="font-display text-sm font-semibold text-foreground mb-4">Recent Activity</h3>
           <div className="space-y-3">
-            {[
-              { text: "New order #1247 received", time: "2 min ago", status: "active" },
-              { text: "Payment of ₦3,500 processed", time: "15 min ago", status: "success" },
-              { text: "Delivery completed for order #1245", time: "1 hour ago", status: "done" },
-              { text: "New review received - 5 stars", time: "3 hours ago", status: "info" },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${
-                    item.status === "active" ? "bg-primary animate-pulse" :
-                    item.status === "success" ? "bg-success" :
-                    "bg-muted-foreground"
-                  }`} />
-                  <span className="text-sm font-body text-foreground">{item.text}</span>
-                </div>
-                <span className="text-xs text-muted-foreground font-body">{item.time}</span>
-              </motion.div>
-            ))}
+            {recentActivity.length === 0 ? (
+              <p className="text-xs text-muted-foreground font-body">No recent activity yet.</p>
+            ) : recentActivity.map((item: any, i: number) => {
+              const ts = new Date(item.created_at);
+              const diff = Math.floor((Date.now() - ts.getTime()) / 60000);
+              const time = diff < 1 ? "just now" : diff < 60 ? `${diff} min ago` : diff < 1440 ? `${Math.floor(diff / 60)}h ago` : `${Math.floor(diff / 1440)}d ago`;
+              const status = item.kind?.includes("delivered") ? "done" : item.kind?.includes("paid") ? "success" : "active";
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i }}
+                  className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      status === "active" ? "bg-primary animate-pulse" :
+                      status === "success" ? "bg-success" : "bg-muted-foreground"
+                    }`} />
+                    <span className="text-sm font-body text-foreground">{item.text}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground font-body">{time}</span>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.div>
       </>
