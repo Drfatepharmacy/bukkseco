@@ -11,6 +11,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { usePaystackPayment } from "react-paystack";
 import { calculateDeliveryFee } from "@/lib/pricing/delivery";
 import { getCartItemPrice, isGroupBuyActive } from "@/lib/pricing/groupBuy";
+import { useSoundNotification } from "@/hooks/useSoundNotification";
+import { browserNotify } from "@/hooks/usePermissions";
 
 const PAYSTACK_PUBLIC_KEY = "pk_live_efc7f697d85e3814c0eac669cb42221df8cb1ba1";
 
@@ -48,6 +50,7 @@ const PaystackCheckoutButton = ({
 
 const BrowseFood = () => {
   const { user } = useAuth();
+  const { playSound } = useSoundNotification();
   const { cart, addToCart, updateQuantity, removeFromCart, toggleGroupBuy, clearCart, cartTotal, discountTotal, grandTotal: cartGrandTotal } = useCart();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -151,6 +154,8 @@ const BrowseFood = () => {
       }
 
       toast.success("Order placed & payment verified! 🎉");
+      playSound("order");
+      browserNotify("Order placed", `₦${finalGrandTotal.toLocaleString()} — payment verified`);
       clearCart();
       setShowCart(false);
       setOrderAddress("");
