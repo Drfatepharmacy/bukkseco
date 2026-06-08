@@ -58,23 +58,31 @@ const BrowseFood = () => {
   const [orderAddress, setOrderAddress] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { data: meals = [], isLoading } = useQuery({
+  const { data: meals = [], isLoading, error: mealsError } = useQuery({
     queryKey: ["browse-meals"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meals")
-        .select(`
-          *,
-          vendor:vendor_id (
-            delivery_multiplier
-          )
-        `)
+        .select("*")
         .eq("is_available", true)
         .order("rating_avg", { ascending: false });
       if (error) throw error;
-      return data;
+
+      // Enrich with vendor delivery_multiplier (separate query — no FK embed)
+      const vendorIds = Array.from(new Set((data || []).map((m: any) => m.vendor_id).filter(Boolean)));
+      let vendorMap: Record<string, { delivery_multiplier: number }> = {};
+      if (vendorIds.length) {
+        const { data: vps } = await supabase
+          .from("vendor_profiles")
+          .select("user_id, delivery_multiplier")
+          .in("user_id", vendorIds);
+        vendorMap = Object.fromEntries((vps || []).map((v: any) => [v.user_id, { delivery_multiplier: v.delivery_multiplier ?? 1.0 }]));
+      }
+      return (data || []).map((m: any) => ({ ...m, vendor: vendorMap[m.vendor_id] || { delivery_multiplier: 1.0 } }));
     },
   });
+
+  if (mealsError) console.error("Browse meals error:", mealsError);
 
   const categories = ["All", ...new Set(meals.map((m: any) => m.category).filter(Boolean))];
 
