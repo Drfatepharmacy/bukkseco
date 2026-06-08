@@ -1437,6 +1437,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_or_create_direct_room: {
+        Args: { _other_user: string }
+        Returns: string
+      }
       get_order_chart_data: {
         Args: { _role: string; _user_id: string }
         Returns: Json

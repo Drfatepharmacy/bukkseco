@@ -1,51 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export const getOrCreateConversation = async (currentUserId: string, otherUserId: string) => {
-  // Check if a direct conversation already exists between these two users
-  const { data: participations, error: partError } = await supabase
-    .from("chat_participants")
-    .select("room_id")
-    .eq("user_id", currentUserId);
-
-  if (partError) throw partError;
-
-  if (participations && participations.length > 0) {
-    const roomIds = participations.map(p => p.room_id);
-
-    // Find a room where the other user is also a participant and room type is 'direct'
-    const { data: commonRooms, error: roomError } = await supabase
-      .from("chat_participants")
-      .select("room_id, chat_rooms!inner(type)")
-      .in("room_id", roomIds)
-      .eq("user_id", otherUserId)
-      .eq("chat_rooms.type", "direct");
-
-    if (roomError) throw roomError;
-
-    if (commonRooms && commonRooms.length > 0) {
-      return commonRooms[0].room_id;
-    }
-  }
-
-  // If no conversation exists, create one
-  const { data: newRoom, error: createRoomError } = await supabase
-    .from("chat_rooms")
-    .insert({ type: "direct" })
-    .select()
-    .single();
-
-  if (createRoomError) throw createRoomError;
-
-  const { error: participantError } = await supabase
-    .from("chat_participants")
-    .insert([
-      { room_id: newRoom.id, user_id: currentUserId },
-      { room_id: newRoom.id, user_id: otherUserId }
-    ]);
-
-  if (participantError) throw participantError;
-
-  return newRoom.id;
+export const getOrCreateConversation = async (_currentUserId: string, otherUserId: string) => {
+  const { data, error } = await supabase.rpc("get_or_create_direct_room", {
+    _other_user: otherUserId,
+  });
+  if (error) throw error;
+  return data as string;
 };
 
 export const uploadAttachment = async (file: File) => {
