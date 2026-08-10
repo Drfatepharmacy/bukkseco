@@ -112,7 +112,18 @@ const LoginPage = () => {
               </div>
             </div>
 
+            <div className="flex justify-end -mt-1">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
             <Button
+
               type="submit"
               className="w-full mt-2 btn-gold py-5 text-base"
               disabled={loading}
