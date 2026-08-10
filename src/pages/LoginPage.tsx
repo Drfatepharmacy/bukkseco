@@ -39,11 +39,15 @@ const LoginPage = () => {
         .eq("user_id", data.user.id)
         .single();
 
-      const role = roleData?.role || "student";
-      // Map 'buyer' role to 'student' route for dashboard
-      const dashboardRole = role === "buyer" ? "student" : role;
+      const role = roleData?.role || "buyer";
       toast.success("Welcome back to BUKKS!");
-      navigate(`/dashboard/${dashboardRole}`);
+      // Roles with a tab shell go straight into it; the rest keep the classic dashboard.
+      if (["buyer", "vendor", "farmer", "rider"].includes(role)) {
+        navigate("/app");
+      } else {
+        navigate(`/dashboard/${role}`);
+      }
+
     }
 
     setLoading(false);
@@ -108,7 +112,18 @@ const LoginPage = () => {
               </div>
             </div>
 
+            <div className="flex justify-end -mt-1">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
             <Button
+
               type="submit"
               className="w-full mt-2 btn-gold py-5 text-base"
               disabled={loading}

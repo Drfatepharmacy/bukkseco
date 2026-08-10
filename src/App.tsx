@@ -9,7 +9,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
+import AppShellPage from "./pages/AppShellPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+
 import HowItWorksPage from "./pages/HowItWorksPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
 import FounderConsolePage from "./pages/FounderConsolePage.tsx";
@@ -47,6 +51,25 @@ const App = () => (
               <Route path="/" element={<Index />} />
             <Route path="/signup/:role" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route
+              path="/app"
+              element={
+                <ProtectedRoute>
+                  <AppShellPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/app/:tab"
+              element={
+                <ProtectedRoute>
+                  <AppShellPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/dashboard/student"
               element={
