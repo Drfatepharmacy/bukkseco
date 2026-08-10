@@ -389,8 +389,13 @@ const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps
     );
   };
 
+  if (embedded) {
+    return <>{renderContent()}</>;
+  }
+
   return (
     <div className="min-h-screen bg-muted/30">
+
       <DashboardSidebar
         items={navItems}
         role={config.label}
