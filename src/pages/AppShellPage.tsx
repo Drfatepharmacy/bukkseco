@@ -24,9 +24,10 @@ const AppShellPage = () => {
       navigate("/login", { replace: true });
       return;
     }
+    if (!role) return; // role still resolving
     if (!tabs) {
       // Roles without a shell (admin, support) keep the classic dashboard.
-      navigate(role ? `/dashboard/${key || "admin"}` : "/", { replace: true });
+      navigate(`/dashboard/${key}`, { replace: true });
       return;
     }
     if (!tab || !tabs.some((t) => t.key === tab)) {
@@ -34,13 +35,14 @@ const AppShellPage = () => {
     }
   }, [loading, user, role, key, tabs, tab, navigate]);
 
-  if (loading || !tabs || !tab) {
+  if (loading || !role || !tabs || !tab || !tabs.some((t) => t.key === tab)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <RefreshCw className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
+
 
   const current = tabs.find((t) => t.key === tab) ?? tabs[0];
 
