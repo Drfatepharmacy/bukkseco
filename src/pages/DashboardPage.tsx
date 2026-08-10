@@ -38,16 +38,23 @@ import { useSoundNotification } from "@/hooks/useSoundNotification";
 
 interface DashboardPageProps {
   role?: string;
+  /** Render content only — no sidebar, no page header (used by the role shell). */
+  embedded?: boolean;
+  /** Section to render when embedded. */
+  navKey?: string;
 }
 
-const DashboardPage = ({ role: propsRole }: DashboardPageProps) => {
+const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps) => {
   const { role: paramRole } = useParams<{ role: string }>();
   const rawRole = propsRole || paramRole;
   const role = rawRole === "student" ? "student" : rawRole;
   const navigate = useNavigate();
   const { signOut, user, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(typeof window !== "undefined" && window.innerWidth < 768);
-  const [activeNav, setActiveNav] = useState("Overview");
+  const [internalNav, setInternalNav] = useState("Overview");
+  const activeNav = embedded ? navKey || "Overview" : internalNav;
+  const setActiveNav = setInternalNav;
+
 
   usePermissions(role);
   const { playSound } = useSoundNotification();
