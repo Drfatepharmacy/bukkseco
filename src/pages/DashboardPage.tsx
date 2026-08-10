@@ -260,6 +260,8 @@ const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps
 
     // Farmer
     if (role === "farmer" && activeNav === "Upload Produce") return <FarmerStockManager />;
+    if (role === "farmer" && activeNav === "Orders") return <OrdersList viewAs="vendor" />;
+
 
     // Admin
     if (role === "admin" && activeNav === "Approve Vendors") return <AdminApprovals filterRole="vendor" />;
