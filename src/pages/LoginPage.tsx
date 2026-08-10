@@ -39,11 +39,15 @@ const LoginPage = () => {
         .eq("user_id", data.user.id)
         .single();
 
-      const role = roleData?.role || "student";
-      // Map 'buyer' role to 'student' route for dashboard
-      const dashboardRole = role === "buyer" ? "student" : role;
+      const role = roleData?.role || "buyer";
       toast.success("Welcome back to BUKKS!");
-      navigate(`/dashboard/${dashboardRole}`);
+      // Roles with a tab shell go straight into it; the rest keep the classic dashboard.
+      if (["buyer", "vendor", "farmer", "rider"].includes(role)) {
+        navigate("/app");
+      } else {
+        navigate(`/dashboard/${role}`);
+      }
+
     }
 
     setLoading(false);
