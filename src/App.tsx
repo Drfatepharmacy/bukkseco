@@ -9,7 +9,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
+import AppShellPage from "./pages/AppShellPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+
 import HowItWorksPage from "./pages/HowItWorksPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
 import FounderConsolePage from "./pages/FounderConsolePage.tsx";
