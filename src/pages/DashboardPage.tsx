@@ -327,8 +327,12 @@ const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps
           </div>
         )}
 
-        {role === "student" && <FoodHero />}
-        
+        {role === "student" ? (
+          <div className="mb-8">
+            <StudentHome />
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {displayStats.map((stat, i) => (
             <StatCard key={i} {...stat} />
@@ -341,13 +345,14 @@ const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps
         {role === "student" && <div className="mb-8"><HealthTipsLive /></div>}
 
         {/* Group Buy preview on student overview */}
-        {role === "student" && <div className="mb-8"><GroupBuySection /></div>}
+        {role === "student" && <div id="together" className="mb-8"><GroupBuySection /></div>}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {displayCharts.map((chart, i) => (
             <InteractiveChart key={i} {...chart} />
           ))}
         </div>
+
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
