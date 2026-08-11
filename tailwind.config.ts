@@ -109,13 +109,24 @@ export default {
           "0%, 100%": { opacity: "0.3" },
           "50%": { opacity: "0.6" },
         },
+        "booking-travel": {
+          "0%": { transform: "translateX(-30%)", opacity: "0" },
+          "15%, 85%": { opacity: "1" },
+          "100%": { transform: "translateX(130%)", opacity: "0" },
+        },
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "float": "float 6s ease-in-out infinite",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        "booking-travel": "booking-travel 2.4s ease-in-out infinite",
+        shimmer: "shimmer 1.8s infinite",
       },
+
     },
   },
   plugins: [require("tailwindcss-animate")],
