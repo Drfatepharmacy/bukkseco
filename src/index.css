@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,59 +6,75 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 8%;
+    /* ---- Bukks V2 canvas ---- */
+    --background: 236 52% 5%;
+    --foreground: 232 43% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 8%;
+    --canvas: 236 52% 5%;
+    --elevated: 231 45% 9%;
+    --utility: 228 38% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 8%;
+    --card: 231 45% 9%;
+    --card-foreground: 232 43% 98%;
 
-    --primary: 43 96% 56%;
-    --primary-foreground: 240 10% 8%;
+    --popover: 231 45% 9%;
+    --popover-foreground: 232 43% 98%;
 
-    --secondary: 270 50% 40%;
-    --secondary-foreground: 0 0% 100%;
+    --primary: 249 100% 68%;
+    --primary-foreground: 236 52% 5%;
+    --primary-glow: 248 100% 74%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 5% 46%;
+    --secondary: 228 38% 12%;
+    --secondary-foreground: 232 43% 98%;
 
-    --accent: 270 50% 40%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 228 38% 12%;
+    --muted-foreground: 226 15% 70%;
 
-    --destructive: 0 84% 60%;
+    --accent: 187 85% 53%;
+    --accent-foreground: 236 52% 5%;
+
+    --destructive: 355 85% 62%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;
-    --success-foreground: 0 0% 100%;
+    --success: 160 79% 54%;
+    --success-foreground: 236 52% 5%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 43 96% 56%;
+    --faint: 226 12% 49%;
 
-    --radius: 0.75rem;
+    --border: 230 30% 16%;
+    --input: 230 30% 16%;
+    --ring: 249 100% 68%;
 
+    --radius: 1rem;
+
+    --violet: 249 100% 68%;
+    --violet-light: 248 100% 74%;
+    --cyan: 187 85% 53%;
+    --mint: 160 79% 54%;
     --gold: 43 96% 56%;
     --gold-dark: 38 90% 45%;
-    --purple: 270 50% 40%;
-    --purple-light: 270 60% 60%;
-    --dark: 240 10% 8%;
+    --purple: 249 100% 68%;
+    --purple-light: 248 100% 74%;
+    --dark: 236 52% 5%;
 
-    --sidebar-background: 240 10% 8%;
-    --sidebar-foreground: 240 5% 75%;
-    --sidebar-primary: 43 96% 56%;
-    --sidebar-primary-foreground: 240 10% 8%;
-    --sidebar-accent: 270 50% 40%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 8% 18%;
-    --sidebar-ring: 43 96% 56%;
+    --sidebar-background: 231 45% 9%;
+    --sidebar-foreground: 226 15% 70%;
+    --sidebar-primary: 249 100% 68%;
+    --sidebar-primary-foreground: 232 43% 98%;
+    --sidebar-accent: 249 100% 68%;
+    --sidebar-accent-foreground: 232 43% 98%;
+    --sidebar-border: 230 30% 16%;
+    --sidebar-ring: 249 100% 68%;
 
-    --shadow-card: 0 4px 24px -4px hsl(240 10% 8% / 0.08);
-    --shadow-glow: 0 0 30px -8px hsl(43 96% 56% / 0.25);
-    --shadow-purple: 0 0 30px -8px hsl(270 50% 40% / 0.2);
+    --gradient-violet: linear-gradient(135deg, hsl(249 100% 68%), hsl(187 85% 53%));
+    --gradient-canvas: radial-gradient(ellipse at 20% -10%, hsl(249 100% 68% / 0.18) 0%, transparent 55%),
+                       radial-gradient(ellipse at 90% 10%, hsl(187 85% 53% / 0.10) 0%, transparent 50%);
 
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    --shadow-card: 0 18px 40px -24px hsl(236 60% 2% / 0.9);
+    --shadow-glow: 0 0 40px -12px hsl(249 100% 68% / 0.55);
+    --shadow-purple: 0 0 30px -10px hsl(249 100% 68% / 0.35);
+
+    font-family: 'Manrope', sans-serif;
   }
 }
 
@@ -69,16 +85,67 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    background-image: var(--gradient-canvas);
+    background-attachment: fixed;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Sora', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
+  /* ---- Surface system: canvas, editorial, image, feature, utility ---- */
+  .surface-canvas {
+    @apply bg-transparent;
+  }
+
+  .surface-editorial {
+    @apply relative rounded-2xl bg-transparent;
+  }
+
+  .surface-feature {
+    @apply relative rounded-3xl overflow-hidden;
+    background: linear-gradient(150deg, hsl(var(--elevated)) 0%, hsl(var(--canvas)) 100%);
+    box-shadow: var(--shadow-card);
+  }
+  .surface-feature::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(140deg, hsl(var(--violet) / 0.45), transparent 45%, hsl(var(--cyan) / 0.25));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .surface-utility {
+    @apply relative rounded-2xl;
+    background: hsl(var(--utility));
+  }
+
+  .surface-image {
+    @apply relative overflow-hidden rounded-3xl;
+  }
+  .surface-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, hsl(var(--canvas)) 2%, hsl(var(--canvas) / 0.35) 45%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .micro-label {
+    @apply font-body text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground;
+  }
+
   .glass-card {
-    @apply relative rounded-xl border border-border bg-card;
+    @apply relative rounded-2xl bg-card/80 backdrop-blur-xl;
+    border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-card);
   }
 
@@ -91,14 +158,15 @@
   }
 
   .geo-card {
-    @apply relative rounded-2xl border border-border bg-card overflow-hidden;
+    @apply relative rounded-3xl bg-card overflow-hidden;
+    border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-card);
   }
   .geo-card::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, hsl(43 96% 56% / 0.03), hsl(270 50% 40% / 0.03));
+    background: linear-gradient(135deg, hsl(var(--violet) / 0.07), hsl(var(--cyan) / 0.04));
     pointer-events: none;
   }
   .geo-card:hover {
@@ -108,14 +176,14 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(43 96% 56%), hsl(270 50% 40%));
+    background: var(--gradient-violet);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gradient-text-gold {
-    background: linear-gradient(135deg, hsl(43 96% 56%), hsl(38 90% 45%));
+    background: linear-gradient(135deg, hsl(var(--violet-light)), hsl(var(--cyan)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -130,7 +198,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(43 96% 56%), hsl(270 50% 40%));
+    background: var(--gradient-violet);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -138,8 +206,7 @@
   }
 
   .hero-gradient {
-    background: radial-gradient(ellipse at 30% 0%, hsl(43 96% 56% / 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 100%, hsl(270 50% 40% / 0.06) 0%, transparent 50%);
+    background: var(--gradient-canvas);
   }
 
   .btn-gold {
@@ -147,7 +214,7 @@
     transition: all 0.2s ease;
   }
   .btn-gold:hover {
-    box-shadow: 0 8px 25px -5px hsl(43 96% 56% / 0.4);
+    box-shadow: var(--shadow-glow);
     transform: translateY(-1px);
   }
 
@@ -156,7 +223,7 @@
     transition: all 0.2s ease;
   }
   .btn-purple:hover {
-    box-shadow: 0 8px 25px -5px hsl(270 50% 40% / 0.3);
+    box-shadow: var(--shadow-purple);
     transform: translateY(-1px);
   }
 }
@@ -169,4 +236,21 @@
 @keyframes pulse-glow {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 0.6; }
+}
+
+/* Booking Line — signature luminous path */
+@keyframes booking-travel {
+  0% { transform: translateX(-30%); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+
+@keyframes booking-node {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--violet) / 0.5); }
+  50% { box-shadow: 0 0 0 6px hsl(var(--violet) / 0); }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
 }
