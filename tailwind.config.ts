@@ -64,7 +64,18 @@ export default {
           DEFAULT: "hsl(var(--purple))",
           light: "hsl(var(--purple-light))",
         },
+        violet: {
+          DEFAULT: "hsl(var(--violet))",
+          light: "hsl(var(--violet-light))",
+        },
+        cyan: "hsl(var(--cyan))",
+        mint: "hsl(var(--mint))",
+        canvas: "hsl(var(--canvas))",
+        elevated: "hsl(var(--elevated))",
+        utility: "hsl(var(--utility))",
+        faint: "hsl(var(--faint))",
         dark: "hsl(var(--dark))",
+
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
