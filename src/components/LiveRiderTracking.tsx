@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +8,9 @@ import {
   Search, RefreshCw, MapPin, Navigation, Clock, Users, Layers,
   ChevronLeft, ChevronRight, Bike, Phone, Mail, X
 } from "lucide-react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { loadGoogleMaps, getRoute, BUKKS_CAMPUS_CENTER, BUKKS_MAP_STYLE } from "@/lib/googleMaps";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoiZW1tdGVjIiwiYSI6ImNtbjJicTVpOTEyaDcycXIzdHV6cjhueDIifQ.vw4mUcJIUB2aYzEGomLI9Q";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface Member {
   id: string;
@@ -43,86 +41,111 @@ interface RiderLoc {
   is_available: boolean;
 }
 
+const iconMap: Record<string, { emoji: string; bg: string; border: string }> = {
+  gate: { emoji: "🚪", bg: "#f59e0b", border: "#fbbf24" },
+  academic: { emoji: "🎓", bg: "#3b82f6", border: "#60a5fa" },
+  hospital: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
+  library: { emoji: "📚", bg: "#8b5cf6", border: "#a78bfa" },
+  recreation: { emoji: "⚽", bg: "#10b981", border: "#34d399" },
+  hostel: { emoji: "🛏️", bg: "#6366f1", border: "#818cf8" },
+  admin: { emoji: "🏛️", bg: "#64748b", border: "#94a3b8" },
+  bank: { emoji: "🏦", bg: "#0ea5e9", border: "#38bdf8" },
+  food: { emoji: "🍽️", bg: "#f97316", border: "#fb923c" },
+  technology: { emoji: "💻", bg: "#14b8a6", border: "#2dd4bf" },
+  worship: { emoji: "⛪", bg: "#a855f7", border: "#c084fc" },
+  clinic: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
+  landmark: { emoji: "📍", bg: "#ec4899", border: "#f472b6" },
+};
+
+const dotIcon = (maps: any, fill: string, scale = 6) => ({
+  path: maps.SymbolPath.CIRCLE,
+  scale,
+  fillColor: fill,
+  fillOpacity: 1,
+  strokeColor: "#ffffff",
+  strokeWeight: 2,
+});
+
 const LiveRiderTracking = () => {
-  const { user } = useAuth();
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const riderMarker = useRef<mapboxgl.Marker | null>(null);
-  const memberMarkers = useRef<mapboxgl.Marker[]>([]);
-  const landmarkMarkers = useRef<mapboxgl.Marker[]>([]);
+  const mapsApi = useRef<any>(null);
+  const map = useRef<any>(null);
+  const riderMarker = useRef<any>(null);
+  const memberMarkers = useRef<any[]>([]);
+  const landmarkMarkers = useRef<any[]>([]);
+  const pathLine = useRef<any>(null);
+  const routeLine = useRef<any>(null);
+  const infoWindow = useRef<any>(null);
 
   const [members, setMembers] = useState<Member[]>([]);
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
   const [riderPos, setRiderPos] = useState<{ lat: number; lng: number } | null>(null);
-  const [pathHistory, setPathHistory] = useState<[number, number][]>([]);
+  const [pathHistory, setPathHistory] = useState<{ lat: number; lng: number }[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showMembers, setShowMembers] = useState(true);
   const [showLandmarks, setShowLandmarks] = useState(true);
-  const [showRoute, setShowRoute] = useState(true);
+  const [showRoute] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [landmarksPassed, setLandmarksPassed] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [eta, setEta] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
 
-  // Init map
+  // Init Google Map
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    let cancelled = false;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
-      center: [5.6100, 6.4000],
-      zoom: 14,
-      attributionControl: false,
-    });
+    loadGoogleMaps()
+      .then((maps) => {
+        if (cancelled || !mapContainer.current || map.current) return;
+        mapsApi.current = maps;
 
-    map.current.addControl(new mapboxgl.NavigationControl(), "bottom-right");
-    map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
+        map.current = new maps.Map(mapContainer.current, {
+          center: BUKKS_CAMPUS_CENTER,
+          zoom: 15,
+          disableDefaultUI: true,
+          zoomControl: true,
+          styles: BUKKS_MAP_STYLE,
+          clickableIcons: false,
+        });
 
-    map.current.on("click", () => setSidebarOpen(false));
-    map.current.on("load", () => {
-      // Path source
-      map.current!.addSource("rider-path", {
-        type: "geojson",
-        data: { type: "Feature", geometry: { type: "LineString", coordinates: [] }, properties: {} },
-      });
-      map.current!.addLayer({
-        id: "rider-path-line",
-        type: "line",
-        source: "rider-path",
-        paint: {
-          "line-color": "#f59e0b",
-          "line-width": 3,
-          "line-opacity": 0.8,
-        },
-      });
+        infoWindow.current = new maps.InfoWindow();
 
-      // Directions route source
-      map.current!.addSource("directions-route", {
-        type: "geojson",
-        data: { type: "Feature", geometry: { type: "LineString", coordinates: [] }, properties: {} },
-      });
-      map.current!.addLayer({
-        id: "directions-route-line",
-        type: "line",
-        source: "directions-route",
-        paint: {
-          "line-color": "#3b82f6",
-          "line-width": 4,
-          "line-opacity": 0.7,
-          "line-dasharray": [2, 1],
-        },
+        pathLine.current = new maps.Polyline({
+          map: map.current,
+          path: [],
+          strokeColor: "#f59e0b",
+          strokeOpacity: 0.85,
+          strokeWeight: 3,
+        });
+
+        routeLine.current = new maps.Polyline({
+          map: map.current,
+          path: [],
+          strokeColor: "#3b82f6",
+          strokeOpacity: 0.75,
+          strokeWeight: 4,
+        });
+
+        map.current.addListener("click", () => setSidebarOpen(false));
+        setLoading(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        if (!cancelled) {
+          setMapError("Live map unavailable — Google Maps is not configured yet.");
+          setLoading(false);
+        }
       });
 
-      setLoading(false);
-    });
-
-    return () => { map.current?.remove(); map.current = null; };
+    return () => {
+      cancelled = true;
+      map.current = null;
+    };
   }, []);
 
   // Load data
@@ -140,10 +163,9 @@ const LiveRiderTracking = () => {
       const r = ridersRes.data[0] as RiderLoc;
       setRiderPos({ lat: r.latitude, lng: r.longitude });
       setLastUpdated(new Date(r.updated_at).toLocaleTimeString());
-      setPathHistory((prev) => [...prev, [r.longitude, r.latitude]]);
+      setPathHistory((prev) => [...prev, { lat: r.latitude, lng: r.longitude }]);
     }
 
-    // Count landmarks passed
     const { count } = await supabase
       .from("rider_locations")
       .select("landmark_passed", { count: "exact", head: true })
@@ -153,7 +175,7 @@ const LiveRiderTracking = () => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Realtime subscription
+  // Realtime rider positions
   useEffect(() => {
     const channel = supabase
       .channel("rider-live-tracking")
@@ -163,7 +185,7 @@ const LiveRiderTracking = () => {
           if (!r.is_available) return;
           setRiderPos({ lat: r.latitude, lng: r.longitude });
           setLastUpdated(new Date(r.updated_at).toLocaleTimeString());
-          setPathHistory((prev) => [...prev, [r.longitude, r.latitude]]);
+          setPathHistory((prev) => [...prev, { lat: r.latitude, lng: r.longitude }]);
           if (r.landmark_passed) setLandmarksPassed((p) => p + 1);
         }
       })
@@ -172,138 +194,112 @@ const LiveRiderTracking = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Update rider marker
+  // Rider marker + breadcrumb trail
   useEffect(() => {
-    if (!map.current || !riderPos) return;
+    const maps = mapsApi.current;
+    if (!maps || !map.current || !riderPos) return;
 
     if (!riderMarker.current) {
-      const el = document.createElement("div");
-      el.className = "rider-pulse-marker";
-      el.innerHTML = `<div class="rider-dot"></div><div class="rider-ring"></div>`;
-      riderMarker.current = new mapboxgl.Marker({ element: el })
-        .setLngLat([riderPos.lng, riderPos.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML("<strong>🏍️ Active Rider</strong>"))
-        .addTo(map.current);
+      riderMarker.current = new maps.Marker({
+        map: map.current,
+        position: riderPos,
+        title: "Active rider",
+        icon: dotIcon(maps, "#f59e0b", 7),
+        zIndex: 999,
+      });
+      riderMarker.current.addListener("click", () => {
+        infoWindow.current.setContent("<strong>Active rider</strong>");
+        infoWindow.current.open(map.current, riderMarker.current);
+      });
     } else {
-      riderMarker.current.setLngLat([riderPos.lng, riderPos.lat]);
+      riderMarker.current.setPosition(riderPos);
     }
 
-    // Update path
-    const src = map.current.getSource("rider-path") as mapboxgl.GeoJSONSource;
-    if (src && pathHistory.length > 1) {
-      src.setData({
-        type: "Feature",
-        geometry: { type: "LineString", coordinates: pathHistory },
-        properties: {},
-      });
-    }
+    if (pathLine.current && pathHistory.length > 1) pathLine.current.setPath(pathHistory);
   }, [riderPos, pathHistory]);
 
-  // Update member markers
+  // Member markers
   useEffect(() => {
-    if (!map.current) return;
-    memberMarkers.current.forEach((m) => m.remove());
+    const maps = mapsApi.current;
+    if (!maps || !map.current) return;
+    memberMarkers.current.forEach((m) => m.setMap(null));
     memberMarkers.current = [];
-
     if (!showMembers) return;
 
     members.forEach((m) => {
       if (!m.latitude || !m.longitude) return;
-      const el = document.createElement("div");
-      el.className = "member-marker";
-      el.innerHTML = `<div style="width:12px;height:12px;background:#10b981;border:2px solid #fff;border-radius:50%;cursor:pointer;"></div>`;
-      el.onclick = () => setSelectedMember(m);
-
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([m.longitude, m.latitude])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 15 }).setHTML(
-            `<div style="color:#000;"><strong>${m.name}</strong><br/>${m.address || "No address"}</div>`
-          )
-        )
-        .addTo(map.current!);
+      const marker = new maps.Marker({
+        map: map.current,
+        position: { lat: m.latitude, lng: m.longitude },
+        icon: dotIcon(maps, "#10b981"),
+        title: m.name,
+      });
+      marker.addListener("click", () => {
+        setSelectedMember(m);
+        infoWindow.current.setContent(
+          `<div style="color:#000"><strong>${m.name}</strong><br/>${m.address || "No address"}</div>`
+        );
+        infoWindow.current.open(map.current, marker);
+      });
       memberMarkers.current.push(marker);
     });
   }, [members, showMembers]);
 
-  // Update landmark markers
+  // Landmark markers
   useEffect(() => {
-    if (!map.current) return;
-    landmarkMarkers.current.forEach((m) => m.remove());
+    const maps = mapsApi.current;
+    if (!maps || !map.current) return;
+    landmarkMarkers.current.forEach((m) => m.setMap(null));
     landmarkMarkers.current = [];
-
     if (!showLandmarks) return;
-
-    const iconMap: Record<string, { emoji: string; bg: string; border: string }> = {
-
-      gate: { emoji: "🚪", bg: "#f59e0b", border: "#fbbf24" },
-      academic: { emoji: "🎓", bg: "#3b82f6", border: "#60a5fa" },
-      hospital: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
-      library: { emoji: "📚", bg: "#8b5cf6", border: "#a78bfa" },
-      recreation: { emoji: "⚽", bg: "#10b981", border: "#34d399" },
-      hostel: { emoji: "🛏️", bg: "#6366f1", border: "#818cf8" },
-      admin: { emoji: "🏛️", bg: "#64748b", border: "#94a3b8" },
-      bank: { emoji: "🏦", bg: "#0ea5e9", border: "#38bdf8" },
-      food: { emoji: "🍽️", bg: "#f97316", border: "#fb923c" },
-      technology: { emoji: "💻", bg: "#14b8a6", border: "#2dd4bf" },
-      worship: { emoji: "⛪", bg: "#a855f7", border: "#c084fc" },
-      clinic: { emoji: "🏥", bg: "#ef4444", border: "#f87171" },
-      landmark: { emoji: "📍", bg: "#ec4899", border: "#f472b6" },
-    };
 
     landmarks.forEach((l) => {
       if (hiddenTypes.has(l.type)) return;
       const icon = iconMap[l.type] || { emoji: "📍", bg: "#8b5cf6", border: "#c4b5fd" };
-      const el = document.createElement("div");
-      el.style.cssText = "cursor:pointer;";
-      el.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:${icon.bg};border:2px solid ${icon.border};border-radius:50%;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${icon.emoji}</div>`;
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([l.longitude, l.latitude])
-        .setPopup(new mapboxgl.Popup({ offset: 18 }).setHTML(`<div style="color:#000;"><strong>${icon.emoji} ${l.name}</strong><br/><em style="color:#666;">${l.type}</em></div>`))
-        .addTo(map.current!);
+      const marker = new maps.Marker({
+        map: map.current,
+        position: { lat: l.latitude, lng: l.longitude },
+        label: { text: icon.emoji, fontSize: "14px" },
+        icon: {
+          path: maps.SymbolPath.CIRCLE,
+          scale: 13,
+          fillColor: icon.bg,
+          fillOpacity: 1,
+          strokeColor: icon.border,
+          strokeWeight: 2,
+        },
+        title: l.name,
+      });
+      marker.addListener("click", () => {
+        infoWindow.current.setContent(
+          `<div style="color:#000"><strong>${icon.emoji} ${l.name}</strong><br/><em style="color:#666">${l.type}</em></div>`
+        );
+        infoWindow.current.open(map.current, marker);
+      });
       landmarkMarkers.current.push(marker);
     });
   }, [landmarks, showLandmarks, hiddenTypes]);
 
-  // Directions
+  // Routes API directions
   const fetchDirections = useCallback(async (dest: Member) => {
-    if (!riderPos || !map.current) return;
+    const maps = mapsApi.current;
+    if (!riderPos || !maps || !map.current) return;
     setEta(null);
-    try {
-      const res = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${riderPos.lng},${riderPos.lat};${dest.longitude},${dest.latitude}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`
-      );
-      const data = await res.json();
-      if (data.routes?.[0]) {
-        const route = data.routes[0];
-        const src = map.current.getSource("directions-route") as mapboxgl.GeoJSONSource;
-        if (src) {
-          src.setData({
-            type: "Feature",
-            geometry: route.geometry,
-            properties: {},
-          });
-        }
-        const mins = Math.round(route.duration / 60);
-        setEta(`${mins} min (${(route.distance / 1000).toFixed(1)} km)`);
 
-        // Fit bounds
-        const coords = route.geometry.coordinates;
-        const bounds = coords.reduce(
-          (b: mapboxgl.LngLatBounds, c: [number, number]) => b.extend(c),
-          new mapboxgl.LngLatBounds(coords[0], coords[0])
-        );
-        map.current.fitBounds(bounds, { padding: 80 });
-      }
-    } catch (e) {
-      console.error("Directions error:", e);
-    }
+    const route = await getRoute(riderPos, { lat: dest.latitude, lng: dest.longitude });
+    if (!route) return;
+
+    const path = maps.geometry.encoding.decodePath(route.polyline);
+    routeLine.current?.setPath(path);
+    setEta(`${Math.round(route.duration / 60)} min (${(route.distance / 1000).toFixed(1)} km)`);
+
+    const bounds = new maps.LatLngBounds();
+    path.forEach((p: any) => bounds.extend(p));
+    map.current.fitBounds(bounds, 80);
   }, [riderPos]);
 
   useEffect(() => {
-    if (selectedMember && riderPos && showRoute) {
-      fetchDirections(selectedMember);
-    }
+    if (selectedMember && riderPos && showRoute) fetchDirections(selectedMember);
   }, [selectedMember, riderPos, showRoute, fetchDirections]);
 
   const filteredMembers = members.filter((m) =>
@@ -313,20 +309,13 @@ const LiveRiderTracking = () => {
 
   const centerOnRider = () => {
     if (riderPos && map.current) {
-      map.current.flyTo({ center: [riderPos.lng, riderPos.lat], zoom: 15 });
+      map.current.panTo(riderPos);
+      map.current.setZoom(16);
     }
   };
 
   return (
     <div className="relative w-full h-[calc(100vh-120px)] rounded-xl overflow-hidden border border-border/50">
-      {/* Pulse marker CSS */}
-      <style>{`
-        .rider-pulse-marker { position: relative; width: 24px; height: 24px; }
-        .rider-dot { width: 14px; height: 14px; background: #f59e0b; border: 3px solid #fff; border-radius: 50%; position: absolute; top: 5px; left: 5px; z-index: 2; }
-        .rider-ring { width: 24px; height: 24px; border: 2px solid #f59e0b; border-radius: 50%; position: absolute; top: 0; left: 0; animation: pulse-ring 1.5s ease-out infinite; }
-        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
-      `}</style>
-
       {/* Sidebar */}
       <div className={`absolute top-0 left-0 h-full z-10 transition-all duration-300 ${sidebarOpen ? "w-72" : "w-0"} overflow-hidden`}>
         <div className="w-72 h-full bg-background/95 backdrop-blur-lg border-r border-border/50 flex flex-col">
@@ -360,7 +349,8 @@ const LiveRiderTracking = () => {
                   onClick={() => {
                     setSelectedMember(m);
                     if (map.current && m.latitude && m.longitude) {
-                      map.current.flyTo({ center: [m.longitude, m.latitude], zoom: 15 });
+                      map.current.panTo({ lat: m.latitude, lng: m.longitude });
+                      map.current.setZoom(16);
                     }
                   }}
                   className={`w-full text-left p-3 rounded-lg transition-colors text-xs ${
@@ -381,7 +371,6 @@ const LiveRiderTracking = () => {
         </div>
       </div>
 
-      {/* Sidebar toggle */}
       {!sidebarOpen && (
         <Button
           variant="secondary"
@@ -480,36 +469,34 @@ const LiveRiderTracking = () => {
             ].map((item) => {
               const isHidden = hiddenTypes.has(item.type);
               return (
-              <button
-                key={item.label}
-                className={`flex items-center gap-2 text-xs w-full rounded-md px-1 py-0.5 transition-opacity ${isHidden ? "opacity-30" : "opacity-100 hover:bg-muted/50"}`}
-                onClick={() => {
-                  setHiddenTypes(prev => {
-                    const next = new Set(prev);
-                    if (next.has(item.type)) next.delete(item.type);
-                    else next.add(item.type);
-                    return next;
-                  });
-                }}
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0"
-                  style={{ background: item.bg, border: `2px solid ${item.bg}44` }}
+                <button
+                  key={item.label}
+                  className={`flex items-center gap-2 text-xs w-full rounded-md px-1 py-0.5 transition-opacity ${isHidden ? "opacity-30" : "opacity-100 hover:bg-muted/50"}`}
+                  onClick={() => {
+                    setHiddenTypes((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(item.type)) next.delete(item.type);
+                      else next.add(item.type);
+                      return next;
+                    });
+                  }}
                 >
-                  {item.emoji}
-                </div>
-                <span className="text-foreground">{item.label}</span>
-                <span className="ml-auto text-[10px] text-muted-foreground">
-                  {landmarks.filter(l => l.type === item.type).length}
-                </span>
-              </button>
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0"
+                    style={{ background: item.bg, border: `2px solid ${item.bg}44` }}
+                  >
+                    {item.emoji}
+                  </div>
+                  <span className="text-foreground">{item.label}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    {landmarks.filter((l) => l.type === item.type).length}
+                  </span>
+                </button>
               );
             })}
             <div className="border-t border-border/50 pt-2 mt-2 space-y-2">
               <div className="flex items-center gap-2 text-xs">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 relative">
-                  <div className="w-3 h-3 bg-[#f59e0b] border-2 border-white rounded-full" />
-                </div>
+                <div className="w-3 h-3 bg-[#f59e0b] border-2 border-white rounded-full shrink-0 ml-1.5" />
                 <span className="text-foreground">Active Rider</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
@@ -526,7 +513,7 @@ const LiveRiderTracking = () => {
         <div className="absolute bottom-16 right-4 z-10 w-64 bg-background/95 backdrop-blur-lg border border-border/50 rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-sm font-bold text-foreground">{selectedMember.name}</h4>
-            <Button variant="ghost" size="sm" onClick={() => { setSelectedMember(null); setEta(null); }}>
+            <Button variant="ghost" size="sm" onClick={() => { setSelectedMember(null); setEta(null); routeLine.current?.setPath([]); }}>
               <X className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -546,22 +533,24 @@ const LiveRiderTracking = () => {
               </div>
             )}
           </div>
-          <Button
-            size="sm"
-            className="w-full mt-3 text-xs"
-            onClick={() => fetchDirections(selectedMember)}
-          >
+          <Button size="sm" className="w-full mt-3 text-xs" onClick={() => fetchDirections(selectedMember)}>
             <Navigation className="w-3 h-3 mr-1" /> Get Directions
           </Button>
         </div>
       )}
 
-      {/* Loading overlay */}
-      {loading && (
+      {/* Loading / error overlay */}
+      {(loading || mapError) && (
         <div className="absolute inset-0 z-20 bg-background/80 flex items-center justify-center">
-          <div className="text-center">
-            <RefreshCw className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Loading map...</p>
+          <div className="text-center px-6">
+            {mapError ? (
+              <p className="text-sm text-muted-foreground">{mapError}</p>
+            ) : (
+              <>
+                <RefreshCw className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Loading map...</p>
+              </>
+            )}
           </div>
         </div>
       )}
