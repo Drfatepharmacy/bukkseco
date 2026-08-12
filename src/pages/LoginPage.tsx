@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import LogoPlaceholder from "@/components/LogoPlaceholder";
@@ -8,9 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { RESET_PASSWORD_PATH } from "@/config/appUrl";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const { isRecovery } = useAuth();
+
+  useEffect(() => {
+    if (params.get("passwordReset") === "success") {
+      toast.success("Password updated. Sign in with your new password.");
+    }
+  }, [params]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +62,9 @@ const LoginPage = () => {
 
     setLoading(false);
   };
+
+  // A live recovery flow must never be hijacked by the login screen.
+  if (isRecovery) return <Navigate to={RESET_PASSWORD_PATH} replace />;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
