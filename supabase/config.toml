@@ -1,1 +1,7 @@
 project_id = "grkykegcqtcclatvhqqo"
+
+[functions.maps-config]
+verify_jwt = false
+
+[functions.maps-route]
+verify_jwt = false
