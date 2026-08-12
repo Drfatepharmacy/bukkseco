@@ -48,7 +48,7 @@ const AppShellPage = () => {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="p-4 md:p-8 pb-32 max-w-6xl mx-auto">
+      <div className="p-4 md:p-8 pb-24 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

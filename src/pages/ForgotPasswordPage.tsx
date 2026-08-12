@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { RESET_PASSWORD_URL } from "@/config/appUrl";
 
 const NEUTRAL =
   "If an account matches these details, recovery instructions have been sent.";
@@ -22,7 +23,7 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     // Never reveal whether the address exists — always show the same result.
     await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: RESET_PASSWORD_URL(),
     });
     setLoading(false);
     setSent(true);

@@ -52,6 +52,8 @@ const App = () => (
             <Route path="/signup/:role" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+            {/* Legacy recovery URL kept working for links already in inboxes */}
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/app"
