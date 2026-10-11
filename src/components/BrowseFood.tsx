@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ShoppingCart, Search, Plus, Minus, X, Users, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,8 @@ const BrowseFood = () => {
   const { user } = useAuth();
   const { playSound } = useSoundNotification();
   const { cart, addToCart, updateQuantity, removeFromCart, toggleGroupBuy, clearCart, cartTotal, discountTotal, grandTotal: cartGrandTotal } = useCart();
-  const [search, setSearch] = useState("");
+  const [params] = useSearchParams();
+  const [search, setSearch] = useState(params.get("q") ?? "");
   const [category, setCategory] = useState("All");
   const [showCart, setShowCart] = useState(false);
   const [orderAddress, setOrderAddress] = useState("");
