@@ -47,37 +47,34 @@ const AppShellPage = () => {
   const current = tabs.find((t) => t.key === tab) ?? tabs[0];
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="p-4 md:p-8 pb-24 max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex items-start justify-between gap-4"
-        >
-          <div>
-            <p className="font-body text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              {key}
-            </p>
-            <h1 className="font-display text-3xl font-bold text-foreground">{current.label}</h1>
-          </div>
+    <div className="min-h-[100dvh] bg-background">
+      <header
+        className="sticky top-0 z-30 border-b border-border bg-background"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+          <h1 className="font-display text-xl font-bold text-foreground">{current.label}</h1>
           <Button
-            variant="outline"
-            size="sm"
-            className="font-body"
+            variant="ghost"
+            size="icon"
+            aria-label="Log out"
+            className="h-11 w-11"
             onClick={() => {
               signOut();
               navigate("/");
             }}
           >
-            <LogOut className="w-4 h-4 mr-1.5" /> Log out
+            <LogOut className="h-5 w-5" />
           </Button>
-        </motion.div>
+        </div>
+      </header>
 
+      <main className="mx-auto max-w-2xl px-4 pt-4 pb-safe-nav">
         <motion.div
           key={current.key}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15 }}
         >
           <DashboardPage role={key} embedded navKey={current.nav} />
 
@@ -87,7 +84,7 @@ const AppShellPage = () => {
             </div>
           )}
         </motion.div>
-      </div>
+      </main>
 
       <RoleTabBar
         items={tabs}
