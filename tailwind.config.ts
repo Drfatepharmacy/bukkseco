@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Sora"', 'sans-serif'],
-        body: ['"Manrope"', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'sans-serif'],
+        body: ['"Instrument Sans"', 'sans-serif'],
       },
 
       colors: {
