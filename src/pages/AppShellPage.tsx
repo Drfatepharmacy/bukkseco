@@ -5,6 +5,7 @@ import { LogOut, RefreshCw } from "lucide-react";
 import DashboardPage from "@/pages/DashboardPage";
 import RoleTabBar from "@/components/RoleTabBar";
 import ChangePasswordCard from "@/components/security/ChangePasswordCard";
+import CartSheet from "@/components/bukks/CartSheet";
 import SupportButton from "@/components/SupportButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -86,6 +87,7 @@ const AppShellPage = () => {
         </motion.div>
       </main>
 
+      {key === "student" && <CartSheet />}
       <RoleTabBar
         items={tabs}
         active={current.key}

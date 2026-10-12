@@ -27,6 +27,7 @@ import VendorSales from "./pages/vendor/VendorSales.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminVendors from "./pages/admin/AdminVendors.tsx";
 import AdminOrders from "./pages/admin/AdminOrders.tsx";
+import OrderTrackingPage from "./pages/OrderTrackingPage.tsx";
 import Placeholder from "./pages/Placeholder.tsx";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -187,6 +188,7 @@ const App = () => (
               }
             />
 
+                <Route path="/order/:id" element={<OrderTrackingPage />} />
                 <Route path="/vendor/:id" element={<VendorStorefrontPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
