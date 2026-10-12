@@ -69,7 +69,7 @@ const OrdersList = ({ viewAs }: { viewAs: "buyer" | "vendor" | "rider" }) => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="font-display font-semibold text-foreground">{order.order_number}</h3>
+                  <a href={`/order/${order.id}`} className="font-display font-semibold text-foreground underline-offset-4 hover:underline">{order.order_number}</a>
                   <p className="text-xs text-muted-foreground font-body">
                     {new Date(order.created_at).toLocaleDateString("en-NG", { dateStyle: "medium" })}
                   </p>
