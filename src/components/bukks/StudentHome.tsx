@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MapPin, Search, PackageSearch, ChevronRight, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { OrderSkeleton, EmptyState } from "@/components/bukks/Skeletons";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -20,6 +21,7 @@ const naira = (n: number) => `₦${Math.round(Number(n) || 0).toLocaleString("en
 const StudentHome = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
 
@@ -45,7 +47,7 @@ const StudentHome = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("meals")
-        .select("id,name,price,category,image_url,stock_quantity")
+        .select("id,name,price,category,image_url,stock_quantity,vendor_id,group_buy_enabled,group_buy_min_qty,group_buy_discount_percent")
         .eq("is_available", true)
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(40);
@@ -89,7 +91,7 @@ const StudentHome = () => {
 
       {activeOrder && (
         <button
-          onClick={() => navigate("/app/orders")}
+          onClick={() => navigate(`/order/${activeOrder.id}`)}
           className="w-full rounded-2xl border border-primary/40 bg-card p-4 text-left"
         >
           {orderLoading ? (
@@ -149,11 +151,7 @@ const StudentHome = () => {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {affordable.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => navigate(`/app/explore?q=${encodeURIComponent(m.name)}`)}
-                className="overflow-hidden rounded-2xl border border-border bg-card text-left"
-              >
+              <div key={m.id} className="overflow-hidden rounded-2xl border border-border bg-card text-left">
                 <div className="aspect-square bg-muted">
                   {m.image_url ? (
                     <img src={m.image_url} alt={m.name} loading="lazy" className="h-full w-full object-cover" />
@@ -165,9 +163,18 @@ const StudentHome = () => {
                 </div>
                 <div className="p-3">
                   <p className="line-clamp-1 font-body text-sm font-semibold text-foreground">{m.name}</p>
-                  <p className="mt-0.5 font-display text-base font-bold text-primary">{naira(Number(m.price))}</p>
+                  <div className="mt-1 flex items-center justify-between">
+                    <p className="font-display text-base font-bold text-primary">{naira(Number(m.price))}</p>
+                    <button
+                      onClick={() => addToCart(m)}
+                      aria-label={`Add ${m.name}`}
+                      className="flex h-10 min-w-10 items-center justify-center rounded-full bg-primary px-3 font-body text-sm font-semibold text-primary-foreground"
+                    >
+                      + Add
+                    </button>
+                  </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
