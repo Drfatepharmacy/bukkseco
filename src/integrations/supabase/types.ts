@@ -623,6 +623,7 @@ export type Database = {
           buyer_id: string
           created_at: string
           decline_reason: string | null
+          delivered_at: string | null
           delivery_address: string | null
           delivery_fee: number | null
           id: string
@@ -630,6 +631,7 @@ export type Database = {
           order_number: string
           payment_reference: string | null
           payment_status: string | null
+          picked_up_at: string | null
           prep_minutes: number | null
           rider_id: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -644,6 +646,7 @@ export type Database = {
           buyer_id: string
           created_at?: string
           decline_reason?: string | null
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
           id?: string
@@ -651,6 +654,7 @@ export type Database = {
           order_number?: string
           payment_reference?: string | null
           payment_status?: string | null
+          picked_up_at?: string | null
           prep_minutes?: number | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -665,6 +669,7 @@ export type Database = {
           buyer_id?: string
           created_at?: string
           decline_reason?: string | null
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
           id?: string
@@ -672,6 +677,7 @@ export type Database = {
           order_number?: string
           payment_reference?: string | null
           payment_status?: string | null
+          picked_up_at?: string | null
           prep_minutes?: number | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -1230,6 +1236,9 @@ export type Database = {
           id: string
           is_approved: boolean
           kitchen_photos: string[] | null
+          pickup_landmark: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
           tenant_id: string | null
           user_id: string
         }
@@ -1242,6 +1251,9 @@ export type Database = {
           id?: string
           is_approved?: boolean
           kitchen_photos?: string[] | null
+          pickup_landmark?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           tenant_id?: string | null
           user_id: string
         }
@@ -1254,6 +1266,9 @@ export type Database = {
           id?: string
           is_approved?: boolean
           kitchen_photos?: string[] | null
+          pickup_landmark?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           tenant_id?: string | null
           user_id?: string
         }
@@ -1462,6 +1477,7 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: Json
       }
+      get_rider_jobs: { Args: never; Returns: Json }
       get_rider_stats: { Args: { _user_id: string }; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
@@ -1489,6 +1505,8 @@ export type Database = {
         Args: { message_ids: string[]; user_id: string }
         Returns: undefined
       }
+      rider_advance_order: { Args: { _order_id: string }; Returns: string }
+      rider_claim_order: { Args: { _order_id: string }; Returns: boolean }
       settle_order_payment: {
         Args: { _buyer_id: string; _order_id: string }
         Returns: Json
