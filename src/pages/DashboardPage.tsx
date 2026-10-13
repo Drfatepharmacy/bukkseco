@@ -10,6 +10,7 @@ import StudentHome from "@/components/bukks/StudentHome";
 import AdminApprovals from "@/components/AdminApprovals";
 import SupportButton from "@/components/SupportButton";
 import VendorMenuManager from "@/components/VendorMenuManager";
+import RiderRun from "@/components/bukks/RiderRun";
 import VendorKitchen from "@/components/bukks/VendorKitchen";
 import BrowseFood from "@/components/BrowseFood";
 import GroupBuySection from "@/components/GroupBuySection";
@@ -257,7 +258,7 @@ const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps
     if (role === "student" && activeNav === "Reservations") return <TableReservation />;
 
     // Rider
-    if (role === "rider" && activeNav === "Available Deliveries") return <RiderDeliverySystem />;
+    if (role === "rider" && activeNav === "Available Deliveries") return <RiderRun />;
     if (role === "rider" && activeNav === "Browse Food") return <BrowseFood />;
     if (role === "rider" && activeNav === "Navigation") return <LiveRiderTracking />;
 
