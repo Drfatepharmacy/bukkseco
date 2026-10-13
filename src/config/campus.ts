@@ -9,6 +9,7 @@ export const ORDER_STAGES = [
   { key: "pending", label: "Order placed" },
   { key: "confirmed", label: "Vendor accepted" },
   { key: "preparing", label: "Being prepared" },
+  { key: "ready", label: "Ready for pickup" },
   { key: "rider_assigned", label: "Rider assigned" },
   { key: "out_for_delivery", label: "On the way" },
   { key: "delivered", label: "Delivered" },
