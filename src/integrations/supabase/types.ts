@@ -619,8 +619,10 @@ export type Database = {
       }
       orders: {
         Row: {
+          accepted_at: string | null
           buyer_id: string
           created_at: string
+          decline_reason: string | null
           delivery_address: string | null
           delivery_fee: number | null
           id: string
@@ -628,6 +630,7 @@ export type Database = {
           order_number: string
           payment_reference: string | null
           payment_status: string | null
+          prep_minutes: number | null
           rider_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number | null
@@ -637,8 +640,10 @@ export type Database = {
           vendor_id: string
         }
         Insert: {
+          accepted_at?: string | null
           buyer_id: string
           created_at?: string
+          decline_reason?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
           id?: string
@@ -646,6 +651,7 @@ export type Database = {
           order_number?: string
           payment_reference?: string | null
           payment_status?: string | null
+          prep_minutes?: number | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number | null
@@ -655,8 +661,10 @@ export type Database = {
           vendor_id: string
         }
         Update: {
+          accepted_at?: string | null
           buyer_id?: string
           created_at?: string
+          decline_reason?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
           id?: string
@@ -664,6 +672,7 @@ export type Database = {
           order_number?: string
           payment_reference?: string | null
           payment_status?: string | null
+          prep_minutes?: number | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number | null
@@ -1509,6 +1518,7 @@ export type Database = {
         | "pending"
         | "confirmed"
         | "preparing"
+        | "ready"
         | "rider_assigned"
         | "out_for_delivery"
         | "delivered"
@@ -1666,6 +1676,7 @@ export const Constants = {
         "pending",
         "confirmed",
         "preparing",
+        "ready",
         "rider_assigned",
         "out_for_delivery",
         "delivered",

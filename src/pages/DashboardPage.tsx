@@ -10,6 +10,7 @@ import StudentHome from "@/components/bukks/StudentHome";
 import AdminApprovals from "@/components/AdminApprovals";
 import SupportButton from "@/components/SupportButton";
 import VendorMenuManager from "@/components/VendorMenuManager";
+import VendorKitchen from "@/components/bukks/VendorKitchen";
 import BrowseFood from "@/components/BrowseFood";
 import GroupBuySection from "@/components/GroupBuySection";
 import OrdersList from "@/components/OrdersList";
@@ -245,7 +246,7 @@ const DashboardPage = ({ role: propsRole, embedded, navKey }: DashboardPageProps
 
     // Vendor
     if (role === "vendor" && activeNav === "Manage Menu") return <VendorMenuManager />;
-    if (role === "vendor" && activeNav === "Orders") return <OrdersList viewAs="vendor" />;
+    if (role === "vendor" && activeNav === "Orders") return <VendorKitchen />;
     if (role === "vendor" && activeNav === "Reviews") return <VendorReviews vendorId={user?.id || ""} />;
     if (role === "vendor" && activeNav === "Reservations") return <TableReservation />;
 

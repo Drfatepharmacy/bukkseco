@@ -14,7 +14,7 @@ const STATUS_LABEL: Record<string, string> = {
   rider_assigned: "Rider assigned",
   out_for_delivery: "On the way",
 };
-const STAGES = ["pending", "confirmed", "preparing", "rider_assigned", "out_for_delivery", "delivered"];
+const STAGES = ["pending", "confirmed", "preparing", "ready", "rider_assigned", "out_for_delivery", "delivered"];
 
 const naira = (n: number) => `₦${Math.round(Number(n) || 0).toLocaleString("en-NG")}`;
 
