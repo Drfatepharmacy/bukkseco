@@ -33,12 +33,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
-console.log("APP START");
-console.log("Environment check:", {
-  url: import.meta.env.VITE_SUPABASE_URL ? "Set" : "Missing",
-  key: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ? "Set" : "Missing",
-});
-
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
